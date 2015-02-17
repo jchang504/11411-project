@@ -36,10 +36,12 @@ We have split the implementation of the ./ask program into four roughly independ
   \item Pattern extraction. Using a list of hand-generated, hard-coded syntax patterns for phrases from which we can easily produce questions, find instances of these patterns in the syntax trees.
   \item Question generation. Using the phrases extracted in 2, transform these phrases into questions according to hand-generated, hard-coded rules. These include rules for generating both binary and wh-questions. Make the questions harder by substituting hypernyms; adding adjectives, prepositions, or comparatives/superlatives; and changing numerical values.
   \item Question ranking. Evaluate and rank questions according to a formula which includes factors such as:
-Grammaticality (as evaluated by a trained question grammar or language model)
-Probability of the sentence parse from which the question was derived
-Ability of ./answer to answer the question (after ./answer is developed)
-Return the $n$ best questions according to this ranking.
+  \begin{enumerate}
+    \item Grammaticality (as evaluated by a trained question grammar or language model)
+    \item Probability of the sentence parse from which the question was derived
+    \item Ability of ./answer to answer the question (after ./answer is developed)
+  \end{enumerate}
+  Return the $n$ best questions according to this ranking.
 \end{enumerate}
 This is the general approach we will follow to implement our initial ./ask program. When we’ve finished this initial implementation, we will test and evaluate it, noting challenges and possible solutions to implement in our refinement stage.
 \section{Answering}
