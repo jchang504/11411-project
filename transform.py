@@ -41,13 +41,13 @@ def transform(tree, pattern):
   
 # transform a simple predicate constituent into a binary question
 def simple_pred_binary_q(tree):
-  # TODO: fix capitalization
+  # TODO: uncapitalization of original first word (except if PropN)
   flat_VP = flatten(tree[1])
   v = flat_VP[0]
   if is_modal(v) or lemma(v) == 'be':
-    return v + ' ' + tree_to_string(tree[0]) + ' ' + tree_to_string(flat_VP[1:])
+    return v.capitalize() + ' ' + tree_to_string(tree[0]) + ' ' + tree_to_string(flat_VP[1:]) + '?'
   else:
-    return conjugate('do', get_inflection(v)) + ' ' + tree_to_string(tree[0]) + ' ' + lemma(v) + ' ' + tree_to_string(flat_VP[1:])
+    return conjugate('do', get_inflection(v)).capitalize() + ' ' + tree_to_string(tree[0]) + ' ' + lemma(v) + ' ' + tree_to_string(flat_VP[1:]) + '?'
     
 def apposition_binary_q(tree):
   # TODO: fill in
@@ -152,6 +152,7 @@ def test_tree_to_string():
   assert('John is a man' == tree_to_string(TREE_4))
 
 def test_simple_pred_binary_q():
+  print 'These should be well-formed, grammatical questions:'
   print simple_pred_binary_q(TREE_1)
   print simple_pred_binary_q(TREE_2)
   print simple_pred_binary_q(TREE_3)
@@ -165,4 +166,4 @@ if TEST:
   test_flatten()
   test_tree_to_string()
   test_simple_pred_binary_q()
-  print 'All good!'
+  print '\nAll good!'
