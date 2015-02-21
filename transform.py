@@ -16,16 +16,17 @@ VP = "VP"
 # TODO: add more
 # [NP, VP]
 SIMPLE_PREDICATION = 0
-# [NP, COMMA, NP, COMMA]
+# [NP, NP]
 APPOSITION = 1
 
 # test trees
-# TODO: all individual words should actually be in singleton list; adjust
-# everything else accordingly
-TREE_1 = ['John', ['ate', ['a', ['burrito']]]]
-TREE_2 = ['John', [['ate', ['a', ['burrito']]], ['in', ['the', ['park']]]]]
-TREE_3 = [['A', ['burrito']], [['was', ['eaten']], ['by', ['John']]]]
-TREE_4 = ['John', ['is', ['a', ['man']]]]
+# TODO: added singletons - need to retest!
+TREE_1 = [['John'], [['ate'], [['a'], ['burrito']]]]
+TREE_2 = [['John'], [[['ate'], [['a'], ['burrito']]], [['in'], [['the'], ['park']]]]]
+TREE_3 = [[['A'], ['burrito']], [[['was'], ['eaten']], [['by'], ['John']]]]
+TREE_4 = [['John'], [['is'], [['a'], ['man']]]]
+TREE_5 = [['John'], [['a'], ['man']]]
+TREE_6 = [[['Their'], ['brothers']], [['successful'], ['farmers']]]
 
 # abstraction function: parses raw tree into nested list format
 def parse_tree(raw_tree):
@@ -38,7 +39,7 @@ def transform(tree, pattern):
     return simple_pred_binary_q(tree)
   elif pattern == APPOSITION:
     return apposition_binary_q(tree)
-  
+
 # transform a simple predicate constituent into a binary question
 def simple_pred_binary_q(tree):
   # TODO: fix capitalization
@@ -48,10 +49,15 @@ def simple_pred_binary_q(tree):
     return v + ' ' + tree_to_string(tree[0]) + ' ' + tree_to_string(flat_VP[1:])
   else:
     return conjugate('do', get_inflection(v)) + ' ' + tree_to_string(tree[0]) + ' ' + lemma(v) + ' ' + tree_to_string(flat_VP[1:])
-    
+
 def apposition_binary_q(tree):
   # TODO: fill in
-  return ''
+  copula = 'Is' if is_singular(tree[0]) else 'Are'
+  return copula + ' ' + tree_to_string(tree[0]) ' ' + tree_to_string(tree[1])
+
+def is_singular(np):
+  # TODO: implement. Recursively looks for the head noun, and compares
+  # singularize(head_noun) == head_noun to determine if it's singular
 
 def is_modal(word):
   # TODO: 'have' is tricky - need to look at next word
