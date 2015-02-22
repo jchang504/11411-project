@@ -11,6 +11,7 @@ MODALS = ['can', 'have', 'may', 'might', 'must', 'shall', 'will']
 # Stanford parser constituent labels:
 NP = 'NP'
 VP = 'VP'
+COMMA = ','
 VERB_PAST = 'VBD'
 VERB_PLURAL = 'VBP'
 VERB_3SG = 'VBZ'
@@ -20,7 +21,7 @@ PROPER_NOUN = 'NNP'
 # TODO: add more
 # [NP, VP]
 SIMPLE_PREDICATION = 0
-# [NP, NP]
+# [NP, COMMA, NP, COMMA]
 APPOSITION = 1
 
 # test trees
@@ -54,8 +55,11 @@ def simple_pred_binary_q(tree):
     return conjugate('do', get_inflection(verb)).capitalize() + ' ' + tree_to_string(np) + ' ' + tree_to_string(vp) + '?'
 
 def apposition_binary_q(tree):
-  # TODO: fill in
-  pass
+  np_1 = tree[0]
+  np_2 = tree[2]
+  copula = 'Are' if is_plural(get_noun(np_1)) else 'Is'
+  uncap(np_1)
+  return copula + ' ' + tree_to_string(np_1) + ' ' + tree_to_string(np_2) + '?'
 
 def is_modal(word):
   # TODO: 'have' is tricky - need to look at next word in VP
@@ -105,4 +109,4 @@ def get_noun(np):
 
 # returns true iff noun is plural
 def is_plural(noun):
-  return noun.endswith('S')
+  return noun.label().endswith('S')
