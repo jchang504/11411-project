@@ -1,8 +1,8 @@
 #!/usr/bin/python
 
-if __name__ == '__main__':
-  from pattern.en import conjugate, lemma, PAST, PRESENT, SG, PL
-  from nltk.tree import *
+#if __name__ == '__main__':
+from pattern.en import conjugate, lemma, PAST, PRESENT, SG, PL
+from nltk.tree import *
 
 # what we need from previous part (pattern extraction): exactract the constituent of the tree matching exactly these patterns, and ***avoid sentences with pronouns
 
