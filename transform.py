@@ -1,8 +1,8 @@
 #!/usr/bin/python
 
-# TODO: only if __name__ == __main__ for putting together
-from pattern.en import conjugate, lemma, PAST, PRESENT, SG, PL
-from nltk.tree import *
+if __name__ == '__main__':
+  from pattern.en import conjugate, lemma, PAST, PRESENT, SG, PL
+  from nltk.tree import *
 
 # what we need from previous part (pattern extraction): exactract the constituent of the tree matching exactly these patterns, and ***avoid sentences with pronouns
 
@@ -36,9 +36,16 @@ TREE_7 = Tree.fromstring('(S (NP (NNP John)) (VP (MD might) (VP (VB have) (VP (V
 TREE_8 = Tree.fromstring('(NP (NP (NNP John)) (, ,) (NP (DT a) (NN man)) (, ,))')
 TREE_9 = Tree.fromstring('(NP (NP (PRP$ Their) (NNS brothers)) (, ,) (NP (DT a) (JJ handsome) (NN lot)) (, ,))')
 
+# top-level function that takes a list of [(pattern, Tree), (pattern, Tree)...]
+# and returns a list of questions (strings)
+def make_questions(sentence_list):
+  questions = []
+  for (pattern, tree) in sentence_list:
+    questions.append(transform(pattern, tree))
+  return questions
 
 # transform parsed tree (constituent, not necessarily sentence) into question
-def transform(tree, pattern):
+def transform(pattern, tree):
   if pattern == SIMPLE_PREDICATION:
     return simple_pred_binary_q(tree)
   elif pattern == APPOSITION:
