@@ -1,16 +1,20 @@
 #!/usr/bin/python
 
-from pattern.en import conjugate, lemma, PAST, PRESENT, SG, PL
+if __name__ == '__main__':
+  from pattern.en import conjugate, lemma, PAST, PRESENT, SG, PL
+  from nltk.tree import *
 
 # what we need from previous part (pattern extraction): exactract the constituent of the tree matching exactly these patterns, and ***avoid sentences with pronouns
 
-# English modal verbs
-MODALS = ['can', 'have', 'may', 'might', 'must', 'shall', 'will']
-
-# Constituent symbols:
-NP = "NP"
-COMMA = ","
-VP = "VP"
+# Stanford parser constituent labels:
+NP = 'NP'
+VP = 'VP'
+COMMA = ','
+VERB_PAST = 'VBD'
+VERB_PLURAL = 'VBP'
+VERB_3SG = 'VBZ'
+PROPER_NOUN = 'NNP'
+MODAL = 'MD'
 
 # hardcoded patterns
 # TODO: add more
@@ -20,149 +24,107 @@ SIMPLE_PREDICATION = 0
 APPOSITION = 1
 
 # test trees
-# TODO: all individual words should actually be in singleton list; adjust
-# everything else accordingly
-TREE_1 = ['John', ['ate', ['a', ['burrito']]]]
-TREE_2 = ['John', [['ate', ['a', ['burrito']]], ['in', ['the', ['park']]]]]
-TREE_3 = [['A', ['burrito']], [['was', ['eaten']], ['by', ['John']]]]
-TREE_4 = ['John', ['is', ['a', ['man']]]]
+# simple predicates
+TREE_1 = Tree.fromstring('(S (NNP John) (VP (VP (VBD ate) (NP (DT a) (NN burrito))) (PP (IN in) (NP (DT the) (NN park)))))')
+TREE_2 = Tree.fromstring('(S (NP (DT A) (NN burrito)) (VP (VBD was) (VP (VBN eaten) (PP (IN by) (NP (NNP John))))))')
+TREE_3 = Tree.fromstring('(S (NP (NNP John)) (VP (VBZ is) (NP (DT a) (NN man))))')
+TREE_4 = Tree.fromstring('(S (NP (DT The) (NN dog)) (VP (ADVP (RB quickly)) (VBD ate) (NP (DT a) (JJ big) (NN burrito))))')
+TREE_5 = Tree.fromstring('(S (NP (NNP John)) (VP (VBZ has) (VP (VBN eaten) (NP (NNS burritos)))))')
+TREE_6 = Tree.fromstring('(S (NP (NNP John)) (VP (VBZ has) (NP (JJ great) (NN burrito) (NN sauce))))')
+TREE_7 = Tree.fromstring('(S (NP (NNP John)) (VP (MD might) (VP (VB have) (VP (VBN eaten) (NP (DT the) (JJ wrong) (NN burrito))))))')
+# Appositions
+TREE_8 = Tree.fromstring('(NP (NP (NNP John)) (, ,) (NP (DT a) (NN man)) (, ,))')
+TREE_9 = Tree.fromstring('(NP (NP (PRP$ Their) (NNS brothers)) (, ,) (NP (DT a) (JJ handsome) (NN lot)) (, ,))')
 
-# abstraction function: parses raw tree into nested list format
-def parse_tree(raw_tree):
-  # TODO: actual parsing code when we find out what format trees will be in
-  return raw_tree
+# top-level function that takes a list of [(pattern, Tree), (pattern, Tree)...]
+# and returns a list of questions (strings)
+def make_questions(sentence_list):
+  questions = []
+  for (pattern, tree) in sentence_list:
+    questions.append(transform(pattern, tree))
+  return questions
 
 # transform parsed tree (constituent, not necessarily sentence) into question
-def transform(tree, pattern):
+def transform(pattern, tree):
   if pattern == SIMPLE_PREDICATION:
     return simple_pred_binary_q(tree)
   elif pattern == APPOSITION:
     return apposition_binary_q(tree)
-  
+
 # transform a simple predicate constituent into a binary question
 def simple_pred_binary_q(tree):
-  # TODO: fix capitalization
-  flat_VP = flatten(tree[1])
-  v = flat_VP[0]
-  if is_modal(v) or lemma(v) == 'be':
-    return v + ' ' + tree_to_string(tree[0]) + ' ' + tree_to_string(flat_VP[1:])
+  np = tree[0]
+  vp = tree[1]
+  verb = get_verb(vp)
+  verb_word = verb[0]
+  if is_modal(verb, vp) or lemma(verb_word) == 'be':
+    uncap(np) # uncapitalize original first word (unless it's NNP)
+    return verb_word.capitalize() + ' ' + tree_to_string(np) + ' ' + ' '.join(vp.leaves()[1:]) + '?' # TODO: hacky - deletes first word of vp
   else:
-    return conjugate('do', get_inflection(v)) + ' ' + tree_to_string(tree[0]) + ' ' + lemma(v) + ' ' + tree_to_string(flat_VP[1:])
-    
+    verb[0] = lemma(verb_word) # convert head verb to infinitive
+    uncap(np) # uncapitalize original first word (unless it's NNP)
+    return conjugate('do', get_inflection(verb)).capitalize() + ' ' + tree_to_string(np) + ' ' + tree_to_string(vp) + '?'
+
 def apposition_binary_q(tree):
-  # TODO: fill in
-  return ''
+  np_1 = tree[0]
+  np_2 = tree[2]
+  copula = 'Are' if is_plural(get_noun(np_1)) else 'Is'
+  uncap(np_1)
+  return copula + ' ' + tree_to_string(np_1) + ' ' + tree_to_string(np_2) + '?'
 
-def is_modal(word):
-  # TODO: 'have' is tricky - need to look at next word
-  return word in MODALS
+# return True iff the verb is a modal or modal 'have'
+def is_modal(verb, vp):
+  # hack - assumes 'have' is vp[0].
+  # Counterexample: 'John definitely has eaten bread' (Stanford parses this wrong though, and it may be ungrammatical - i.e. not a problem)
+  return verb.label() == MODAL or (lemma(verb[0]) == 'have' and vp[1].label() != 'NP')
 
-def flatten(tree):
-  if isinstance(tree, str):
-    return [tree]
-  else:
-    flattened = []
-    for child in tree:
-      flattened.extend(flatten(child))
-    return flattened
+# TODO: switch in hyper/hypo-nyms, synonyms, etc. from WordNet
+def confound():
+  pass
 
-# flatten the syntax tree into a string
+# return a string of the leaves of the tree
 def tree_to_string(tree):
-  return " ".join(flatten(tree))
+  return " ".join(tree.leaves())
 
-# gets the first word of a constituent, which may be arbitrarily deeply nested
-# TODO: maybe don't need this anymore now that we have flatten?
-def get_first_word(constituent):
-  current_constituent = constituent
-  while isinstance(current_constituent, list):
-    current_constituent = current_constituent[0]
-  return current_constituent
+# gets the leftmost leaf node of tree
+def first_word(tree):
+  node = tree
+  while isinstance(node[0], Tree):
+    node = node[0]
+  return node
+
+# uncapitalizes the phrase, unless its first word is a proper noun
+def uncap(phrase):
+  first = first_word(phrase)
+  if first.label() != PROPER_NOUN:
+    first[0] = first[0].lower()
+
+# returns the verb which heads (possibly indirectly) vp
+def get_verb(vp):
+  node = vp
+  while node.label() == VP:
+    for child in node: # move down to the first child which is a VP or verb
+      if child.label().startswith('V') or child.label() == MODAL:
+        node = child
+        break
+  return node
 
 # Alias strings
-ALIAS_PAST = 'p'
-ALIAS_REG = 'inf'
-ALIAS_3SG = '3sg'
-# returns the alias corresponding to the verb's distinguishable inflection,
-# i.e. ALIAS_PAST for all past tense verbs, ALIAS_REG for "regular" (non-3rd
-# person singular) present tense verbs, and ALIAS_3SG for 3rd-person singular
-# present tense verbs
-# Do NOT use for irregular verb 'to be' or modals!
+ALIASES = {VERB_PAST: 'p', VERB_PLURAL: 'inf', VERB_3SG: '3sg'}
+# returns the alias corresponding to the VP's distinguishable inflection
 def get_inflection(verb):
-  base_form = lemma(verb)
-  if verb == base_form:
-    return ALIAS_REG
-  elif verb == conjugate(base_form, '3sg'):
-    return ALIAS_3SG
-  elif verb == conjugate(base_form, PAST) or verb == conjugate(base_form, 'ppart'):
-    return ALIAS_PAST
-  else:
-    # TODO: a little hacky
-    if verb[-1] == 's':
-      return ALIAS_3SG
-    else:
-      return ALIAS_REG
+  return ALIASES[verb.label()]
 
-def test_get_inflection():
-  assert(ALIAS_PAST == get_inflection('killed'))
-  assert(ALIAS_PAST == get_inflection('purred'))
-  assert(ALIAS_PAST == get_inflection('canned'))
-  assert(ALIAS_PAST == get_inflection('broke'))
-  assert(ALIAS_PAST == get_inflection('swam'))
-  assert(ALIAS_PAST == get_inflection('could'))
-  assert(ALIAS_PAST == get_inflection('had'))
-  assert(ALIAS_PAST == get_inflection('halved'))
-  assert(ALIAS_PAST == get_inflection('redistributed'))
-  assert(ALIAS_PAST == get_inflection('thwacked'))
+# returns the noun which heads (possible indirectly) np
+def get_noun(np):
+  node = np
+  while node.label() == NP:
+    for child in node: # move down to the first child which is an NP or noun
+      if child.label().startswith('N'):
+        node = child
+        break
+  return node
 
-  assert(ALIAS_REG == get_inflection('kill'))
-  assert(ALIAS_REG == get_inflection('purr'))
-  assert(ALIAS_REG == get_inflection('break'))
-  assert(ALIAS_REG == get_inflection('eat'))
-  assert(ALIAS_REG == get_inflection('swim'))
-  assert(ALIAS_REG == get_inflection('have'))
-  assert(ALIAS_REG == get_inflection('halve'))
-
-  assert(ALIAS_3SG == get_inflection('kills'))
-  assert(ALIAS_3SG == get_inflection('purrs'))
-  assert(ALIAS_3SG == get_inflection('breaks'))
-  assert(ALIAS_3SG == get_inflection('eats'))
-  assert(ALIAS_3SG == get_inflection('swims'))
-  assert(ALIAS_3SG == get_inflection('has'))
-  assert(ALIAS_3SG == get_inflection('halves'))
-  assert(ALIAS_3SG == get_inflection('redistributes'))
-  assert(ALIAS_3SG == get_inflection('thwacks'))
-  assert(ALIAS_3SG == get_inflection('cans'))
-
-def test_get_first_word():
-  assert('ate' == get_first_word(TREE_1[1]))
-  assert('ate' == get_first_word(TREE_2[1]))
-  assert('was' == get_first_word(TREE_3[1]))
-  assert('is' == get_first_word(TREE_4[1]))
-
-def test_flatten():
-  assert(['John', 'ate', 'a', 'burrito'] == flatten(TREE_1))
-  assert(['John', 'ate', 'a', 'burrito', 'in', 'the', 'park'] == flatten(TREE_2))
-  assert(['A', 'burrito', 'was', 'eaten', 'by', 'John'] == flatten(TREE_3))
-  assert(['John', 'is', 'a', 'man'] == flatten(TREE_4))
-
-def test_tree_to_string():
-  assert('John ate a burrito' == tree_to_string(TREE_1))
-  assert('John ate a burrito in the park' == tree_to_string(TREE_2))
-  assert('A burrito was eaten by John' == tree_to_string(TREE_3))
-  assert('John is a man' == tree_to_string(TREE_4))
-
-def test_simple_pred_binary_q():
-  print simple_pred_binary_q(TREE_1)
-  print simple_pred_binary_q(TREE_2)
-  print simple_pred_binary_q(TREE_3)
-  print simple_pred_binary_q(TREE_4)
-
-TEST = True
-if TEST:
-  print 'Testing...'
-  test_get_inflection()
-  test_get_first_word()
-  test_flatten()
-  test_tree_to_string()
-  test_simple_pred_binary_q()
-  print 'All good!'
+# returns true iff noun is plural
+def is_plural(noun):
+  return noun.label().endswith('S')
