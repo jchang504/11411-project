@@ -1,16 +1,20 @@
 #!/usr/bin/python
 
 from pattern.en import conjugate, lemma, PAST, PRESENT, SG, PL
+from nltk.tree import *
 
 # what we need from previous part (pattern extraction): exactract the constituent of the tree matching exactly these patterns, and ***avoid sentences with pronouns
 
 # English modal verbs
 MODALS = ['can', 'have', 'may', 'might', 'must', 'shall', 'will']
 
-# Constituent symbols:
-NP = "NP"
-COMMA = ","
-VP = "VP"
+# Stanford parser constituent labels:
+NP = 'NP'
+VP = 'VP'
+VERB_PAST = 'VBD'
+VERB_PLURAL = 'VBP'
+VERB_3SG = 'VBZ'
+PROPER_NOUN = 'NNP'
 
 # hardcoded patterns
 # TODO: add more
@@ -20,18 +24,13 @@ SIMPLE_PREDICATION = 0
 APPOSITION = 1
 
 # test trees
-# TODO: added singletons - need to retest!
-TREE_1 = [['John'], [['ate'], [['a'], ['burrito']]]]
-TREE_2 = [['John'], [[['ate'], [['a'], ['burrito']]], [['in'], [['the'], ['park']]]]]
-TREE_3 = [[['A'], ['burrito']], [[['was'], ['eaten']], [['by'], ['John']]]]
-TREE_4 = [['John'], [['is'], [['a'], ['man']]]]
-TREE_5 = [['John'], [['a'], ['man']]]
-TREE_6 = [[['Their'], ['brothers']], [['successful'], ['farmers']]]
-
-# abstraction function: parses raw tree into nested list format
-def parse_tree(raw_tree):
-  # TODO: actual parsing code when we find out what format trees will be in
-  return raw_tree
+TREE_1 = Tree.fromstring('(S (NP (NNP John)) (VP (VBD ate) (NP (DT a) (NN burrito))))')
+TREE_2 = Tree.fromstring('(S (NNP John) (VP (VP (VBD ate) (NP (DT a) (NN burrito))) (PP (IN in) (NP (DT the) (NN park)))))')
+TREE_3 = Tree.fromstring('(S (NP (DT A) (NN burrito)) (VP (VBD was) (VP (VBN eaten) (PP (IN by) (NP (NNP John))))))')
+TREE_4 = Tree.fromstring('(S (NP (NNP John)) (VP (VBZ is) (NP (DT a) (NN man))))')
+TREE_5 = Tree.fromstring('(S (NP (DT The) (NN dog)) (VP (ADVP (RB quickly)) (VBD ate) (NP (DT a) (JJ big) (NN burrito))))')
+TREE_6 = Tree.fromstring('(NP (NP (NNP John)) (, ,) (NP (DT a) (NN man)) (, ,))')
+TREE_7 = Tree.fromstring('(NP (NP (PRP$ Their) (NNS brothers)) (, ,) (NP (DT a) (JJ handsome) (NN lot)) (, ,))')
 
 # transform parsed tree (constituent, not necessarily sentence) into question
 def transform(tree, pattern):
@@ -42,69 +41,68 @@ def transform(tree, pattern):
 
 # transform a simple predicate constituent into a binary question
 def simple_pred_binary_q(tree):
-  # TODO: uncapitalization of original first word (except if PropN)
-  flat_VP = flatten(tree[1])
-  v = flat_VP[0]
-  if is_modal(v) or lemma(v) == 'be':
-    return v.capitalize() + ' ' + tree_to_string(tree[0]) + ' ' + tree_to_string(flat_VP[1:]) + '?'
+  np = tree[0]
+  vp = tree[1]
+  verb = get_verb(vp)
+  verb_word = verb[0]
+  if is_modal(verb_word) or lemma(verb_word) == 'be':
+    uncap(np) # uncapitalize original first word (unless it's NNP)
+    return verb_word.capitalize() + ' ' + tree_to_string(np) + ' ' + ' '.join(vp.leaves()[1:]) + '?' # TODO: hacky - deletes first word of vp
   else:
-    return conjugate('do', get_inflection(v)).capitalize() + ' ' + tree_to_string(tree[0]) + ' ' + lemma(v) + ' ' + tree_to_string(flat_VP[1:]) + '?'
+    verb[0] = lemma(verb_word) # convert head verb to infinitive
+    uncap(np) # uncapitalize original first word (unless it's NNP)
+    return conjugate('do', get_inflection(verb)).capitalize() + ' ' + tree_to_string(np) + ' ' + tree_to_string(vp) + '?'
 
 def apposition_binary_q(tree):
   # TODO: fill in
-  copula = 'Is' if is_singular(tree[0]) else 'Are'
-  return copula + ' ' + tree_to_string(tree[0]) + ' ' + tree_to_string(tree[1])
-
-def is_singular(np):
-  # TODO: implement. Recursively looks for the head noun, and compares
-  # singularize(head_noun) == head_noun to determine if it's singular
   pass
 
 def is_modal(word):
-  # TODO: 'have' is tricky - need to look at next word
+  # TODO: 'have' is tricky - need to look at next word in VP
   return word in MODALS
 
-def flatten(tree):
-  if isinstance(tree, str):
-    return [tree]
-  else:
-    flattened = []
-    for child in tree:
-      flattened.extend(flatten(child))
-    return flattened
+# TODO: switches in hyper/hypo-nyms, synonyms, etc. from WordNet
+def confound():
+  pass
 
-# flatten the syntax tree into a string
+# return a string of the leaves of the tree
 def tree_to_string(tree):
-  return " ".join(flatten(tree))
+  return " ".join(tree.leaves())
 
-# gets the first word of a constituent, which may be arbitrarily deeply nested
-# TODO: maybe don't need this anymore now that we have flatten?
-def get_first_word(constituent):
-  current_constituent = constituent
-  while isinstance(current_constituent, list):
-    current_constituent = current_constituent[0]
-  return current_constituent
+# uncapitalizes the phrase, unless its first word is a proper noun
+def uncap(phrase):
+  node = phrase
+  while isinstance(node[0], Tree):
+    node = node[0]
+  if node.label() != PROPER_NOUN:
+    node[0] = node[0].lower()
+
+# returns the verb which heads (possibly indirectly) vp
+def get_verb(vp):
+  node = vp
+  while node.label() == VP:
+    for child in node: # move down to the first child which is a VP or verb
+      if child.label().startswith('V'):
+        node = child
+        break
+  return node
 
 # Alias strings
-ALIAS_PAST = 'p'
-ALIAS_REG = 'inf'
-ALIAS_3SG = '3sg'
-# returns the alias corresponding to the verb's distinguishable inflection,
-# i.e. ALIAS_PAST for all past tense verbs, ALIAS_REG for "regular" (non-3rd
-# person singular) present tense verbs, and ALIAS_3SG for 3rd-person singular
-# present tense verbs
-# Do NOT use for irregular verb 'to be' or modals!
+ALIASES = {VERB_PAST: 'p', VERB_PLURAL: 'inf', VERB_3SG: '3sg'}
+# returns the alias corresponding to the VP's distinguishable inflection
 def get_inflection(verb):
-  base_form = lemma(verb)
-  if verb == base_form:
-    return ALIAS_REG
-  elif verb == conjugate(base_form, '3sg'):
-    return ALIAS_3SG
-  elif verb == conjugate(base_form, PAST) or verb == conjugate(base_form, 'ppart'):
-    return ALIAS_PAST
-  else:
-    # TODO: a little hacky
-    if verb[-1] == 's':
-      return ALIAS_3SG
-    else:
-      return ALIAS_REG
+  return ALIASES[verb.label()]
+
+# returns the noun which heads (possible indirectly) np
+def get_noun(np):
+  node = np
+  while node.label() == NP:
+    for child in node: # move down to the first child which is an NP or noun
+      if child.label().startswith('N'):
+        node = child
+        break
+  return node
+
+# returns true iff noun is plural
+def is_plural(noun):
+  return noun.endswith('S')
