@@ -1,12 +1,10 @@
 #!/usr/bin/python
 
+# TODO: only if __name__ == __main__ for putting together
 from pattern.en import conjugate, lemma, PAST, PRESENT, SG, PL
 from nltk.tree import *
 
 # what we need from previous part (pattern extraction): exactract the constituent of the tree matching exactly these patterns, and ***avoid sentences with pronouns
-
-# English modal verbs
-MODALS = ['can', 'have', 'may', 'might', 'must', 'shall', 'will']
 
 # Stanford parser constituent labels:
 NP = 'NP'
@@ -16,6 +14,7 @@ VERB_PAST = 'VBD'
 VERB_PLURAL = 'VBP'
 VERB_3SG = 'VBZ'
 PROPER_NOUN = 'NNP'
+MODAL = 'MD'
 
 # hardcoded patterns
 # TODO: add more
@@ -25,13 +24,18 @@ SIMPLE_PREDICATION = 0
 APPOSITION = 1
 
 # test trees
-TREE_1 = Tree.fromstring('(S (NP (NNP John)) (VP (VBD ate) (NP (DT a) (NN burrito))))')
-TREE_2 = Tree.fromstring('(S (NNP John) (VP (VP (VBD ate) (NP (DT a) (NN burrito))) (PP (IN in) (NP (DT the) (NN park)))))')
-TREE_3 = Tree.fromstring('(S (NP (DT A) (NN burrito)) (VP (VBD was) (VP (VBN eaten) (PP (IN by) (NP (NNP John))))))')
-TREE_4 = Tree.fromstring('(S (NP (NNP John)) (VP (VBZ is) (NP (DT a) (NN man))))')
-TREE_5 = Tree.fromstring('(S (NP (DT The) (NN dog)) (VP (ADVP (RB quickly)) (VBD ate) (NP (DT a) (JJ big) (NN burrito))))')
-TREE_6 = Tree.fromstring('(NP (NP (NNP John)) (, ,) (NP (DT a) (NN man)) (, ,))')
-TREE_7 = Tree.fromstring('(NP (NP (PRP$ Their) (NNS brothers)) (, ,) (NP (DT a) (JJ handsome) (NN lot)) (, ,))')
+# simple predicates
+TREE_1 = Tree.fromstring('(S (NNP John) (VP (VP (VBD ate) (NP (DT a) (NN burrito))) (PP (IN in) (NP (DT the) (NN park)))))')
+TREE_2 = Tree.fromstring('(S (NP (DT A) (NN burrito)) (VP (VBD was) (VP (VBN eaten) (PP (IN by) (NP (NNP John))))))')
+TREE_3 = Tree.fromstring('(S (NP (NNP John)) (VP (VBZ is) (NP (DT a) (NN man))))')
+TREE_4 = Tree.fromstring('(S (NP (DT The) (NN dog)) (VP (ADVP (RB quickly)) (VBD ate) (NP (DT a) (JJ big) (NN burrito))))')
+TREE_5 = Tree.fromstring('(S (NP (NNP John)) (VP (VBZ has) (VP (VBN eaten) (NP (NNS burritos)))))')
+TREE_6 = Tree.fromstring('(S (NP (NNP John)) (VP (VBZ has) (NP (JJ great) (NN burrito) (NN sauce))))')
+TREE_7 = Tree.fromstring('(S (NP (NNP John)) (VP (MD might) (VP (VB have) (VP (VBN eaten) (NP (DT the) (JJ wrong) (NN burrito))))))')
+# Appositions
+TREE_8 = Tree.fromstring('(NP (NP (NNP John)) (, ,) (NP (DT a) (NN man)) (, ,))')
+TREE_9 = Tree.fromstring('(NP (NP (PRP$ Their) (NNS brothers)) (, ,) (NP (DT a) (JJ handsome) (NN lot)) (, ,))')
+
 
 # transform parsed tree (constituent, not necessarily sentence) into question
 def transform(tree, pattern):
@@ -46,7 +50,7 @@ def simple_pred_binary_q(tree):
   vp = tree[1]
   verb = get_verb(vp)
   verb_word = verb[0]
-  if is_modal(verb_word) or lemma(verb_word) == 'be':
+  if is_modal(verb, vp) or lemma(verb_word) == 'be':
     uncap(np) # uncapitalize original first word (unless it's NNP)
     return verb_word.capitalize() + ' ' + tree_to_string(np) + ' ' + ' '.join(vp.leaves()[1:]) + '?' # TODO: hacky - deletes first word of vp
   else:
@@ -61,11 +65,13 @@ def apposition_binary_q(tree):
   uncap(np_1)
   return copula + ' ' + tree_to_string(np_1) + ' ' + tree_to_string(np_2) + '?'
 
-def is_modal(word):
-  # TODO: 'have' is tricky - need to look at next word in VP
-  return word in MODALS
+# return True iff the verb is a modal or modal 'have'
+def is_modal(verb, vp):
+  # hack - assumes 'have' is vp[0].
+  # Counterexample: 'John definitely has eaten bread' (Stanford parses this wrong though, and it may be ungrammatical - i.e. not a problem)
+  return verb.label() == MODAL or (lemma(verb[0]) == 'have' and vp[1].label() != 'NP')
 
-# TODO: switches in hyper/hypo-nyms, synonyms, etc. from WordNet
+# TODO: switch in hyper/hypo-nyms, synonyms, etc. from WordNet
 def confound():
   pass
 
@@ -73,20 +79,25 @@ def confound():
 def tree_to_string(tree):
   return " ".join(tree.leaves())
 
-# uncapitalizes the phrase, unless its first word is a proper noun
-def uncap(phrase):
-  node = phrase
+# gets the leftmost leaf node of tree
+def first_word(tree):
+  node = tree
   while isinstance(node[0], Tree):
     node = node[0]
-  if node.label() != PROPER_NOUN:
-    node[0] = node[0].lower()
+  return node
+
+# uncapitalizes the phrase, unless its first word is a proper noun
+def uncap(phrase):
+  first = first_word(phrase)
+  if first.label() != PROPER_NOUN:
+    first[0] = first[0].lower()
 
 # returns the verb which heads (possibly indirectly) vp
 def get_verb(vp):
   node = vp
   while node.label() == VP:
     for child in node: # move down to the first child which is a VP or verb
-      if child.label().startswith('V'):
+      if child.label().startswith('V') or child.label() == MODAL:
         node = child
         break
   return node
