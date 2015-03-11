@@ -1,52 +1,21 @@
 #!/usr/bin/python
 
-#if __name__ == '__main__':
-from pattern.en import conjugate, lemma, PAST, PRESENT, SG, PL
-from nltk.tree import *
+from pattern.en import conjugate, lemma
+from nltk.tree import Tree
+from tags_and_patterns import *
 
-# what we need from previous part (pattern extraction): exactract the constituent of the tree matching exactly these patterns, and ***avoid sentences with pronouns
-
-# Stanford parser constituent labels:
-NP = 'NP'
-VP = 'VP'
-COMMA = ','
-VERB_PAST = 'VBD'
-VERB_PLURAL = 'VBP'
-VERB_3SG = 'VBZ'
-PROPER_NOUN = 'NNP'
-MODAL = 'MD'
-
-# hardcoded patterns
-# TODO: add more
-# [NP, VP]
-SIMPLE_PREDICATION = 0
-# [NP, COMMA, NP, COMMA]
-APPOSITION = 1
-
-# test trees
-# simple predicates
-TREE_1 = Tree.fromstring('(S (NNP John) (VP (VP (VBD ate) (NP (DT a) (NN burrito))) (PP (IN in) (NP (DT the) (NN park)))))')
-TREE_2 = Tree.fromstring('(S (NP (DT A) (NN burrito)) (VP (VBD was) (VP (VBN eaten) (PP (IN by) (NP (NNP John))))))')
-TREE_3 = Tree.fromstring('(S (NP (NNP John)) (VP (VBZ is) (NP (DT a) (NN man))))')
-TREE_4 = Tree.fromstring('(S (NP (DT The) (NN dog)) (VP (ADVP (RB quickly)) (VBD ate) (NP (DT a) (JJ big) (NN burrito))))')
-TREE_5 = Tree.fromstring('(S (NP (NNP John)) (VP (VBZ has) (VP (VBN eaten) (NP (NNS burritos)))))')
-TREE_6 = Tree.fromstring('(S (NP (NNP John)) (VP (VBZ has) (NP (JJ great) (NN burrito) (NN sauce))))')
-TREE_7 = Tree.fromstring('(S (NP (NNP John)) (VP (MD might) (VP (VB have) (VP (VBN eaten) (NP (DT the) (JJ wrong) (NN burrito))))))')
-# Appositions
-TREE_8 = Tree.fromstring('(NP (NP (NNP John)) (, ,) (NP (DT a) (NN man)) (, ,))')
-TREE_9 = Tree.fromstring('(NP (NP (PRP$ Their) (NNS brothers)) (, ,) (NP (DT a) (JJ handsome) (NN lot)) (, ,))')
-
-# top-level function that takes a list of [(pattern, Tree), (pattern, Tree)...]
-# and returns a list of questions (strings)
-def make_questions(sentence_list):
+# top-level function that takes a dictionary mapping patterns to matches and
+# returns a list of questions (strings)
+def make_questions(pattern_matches):
   questions = []
-  for (pattern, tree) in sentence_list:
-    questions.append(transform(pattern, tree))
+  for pattern in pattern_matches:
+    for match in pattern_matches[pattern]:
+      questions.append(transform(pattern, match))
   return questions
 
 # transform parsed tree (constituent, not necessarily sentence) into question
 def transform(pattern, tree):
-  if pattern == SIMPLE_PREDICATION:
+  if pattern == SIMPLE_PREDICATE:
     return simple_pred_binary_q(tree)
   elif pattern == APPOSITION:
     return apposition_binary_q(tree)
@@ -96,7 +65,7 @@ def first_word(tree):
 # uncapitalizes the phrase, unless its first word is a proper noun
 def uncap(phrase):
   first = first_word(phrase)
-  if first.label() != PROPER_NOUN:
+  if first.label() != NOUN_PROPER:
     first[0] = first[0].lower()
 
 # returns the verb which heads (possibly indirectly) vp

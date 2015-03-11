@@ -12,7 +12,7 @@ PATTERNS = [SIMPLE_PREDICATE, APPOSITION]
 
 # returns a dictionary keyed by PATTERNS, with values lists of the matches to
 # those patterns found in the parse_trees
-def get_matches(parse_trees):
+def find_matches(parse_trees):
   pattern_matches = dict(zip(PATTERNS, [[] for i in xrange(len(PATTERNS))]))
   for parse_tree in parse_trees:
     extract_pattern_matches(parse_tree, PATTERNS, pattern_matches)
