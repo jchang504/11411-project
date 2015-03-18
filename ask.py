@@ -8,7 +8,8 @@
 #   the Stanford parser
 
 import sys
-import parse
+import stanford_parser
+import parse_article
 import extract
 import transform
 
@@ -17,8 +18,9 @@ num_questions = sys.argv[2]
 user = sys.argv[3]
 
 # do it
-parse.set_params(user)
-parse_trees = parse.parse_html(article_filename)
+stanford = stanford_parser.create_parser(user)
+sentences = parse_article.parse_html(article_filename)
+parse_trees = stanford.raw_parse_sents(sentences)
 pattern_matches = extract.find_matches(parse_trees)
 questions = transform.make_questions(pattern_matches)
 for q in questions:

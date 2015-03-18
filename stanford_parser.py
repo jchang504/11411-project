@@ -1,30 +1,12 @@
 #!/usr/bin/python
 
 import os
-from bs4 import BeautifulSoup
-from nltk.tree import Tree
-from nltk.tokenize import sent_tokenize
 from nltk.parse.stanford import StanfordParser
 
-# REQUIRES: run set_params(name) first, or Stanford parser won't work
-# returns a list of parse trees for the sentences of the article stored in
-# wiki_filename
-def parse_html(wiki_filename):
-    with open(wiki_filename) as wikifile:
-      soup = BeautifulSoup(wikifile)
-    # get rid of citations like "[1]", etc.
-    for citation in soup.find_all('sup'):
-      citation.decompose()
-    # all the useful info in wiki articles are in <p> tags
-    paragraphs = soup.find_all('p')
-    # combine paragraphs, segment sentences, and parse into Trees
-    paragraphs_text = [p.get_text() for p in paragraphs]
-    all_text = ' '.join(paragraphs_text)
-    sentences = sent_tokenize(all_text)
-    parser = StanfordParser(model_path=ENGLISH_PCFG_LOC)
-    # (ignore non-ASCII characters)
-    parse_trees = parser.raw_parse_sents([s.encode('ascii', 'ignore') for s in sentences])
-    return parse_trees
+# creates an NLTK interface to the Stanford parser installed on user's machine
+def create_parser(user):
+    set_params(user)
+    return StanfordParser(model_path=ENGLISH_PCFG_LOC)
 
 # locations of Stanford parser/models, Java, and English PCFG model
 USER_STANFORD_PARAMS = {}
