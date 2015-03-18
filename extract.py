@@ -3,13 +3,6 @@
 from nltk.tree import Tree
 from tags_and_patterns import *
 
-# hardcoded patterns to extract
-SIMPLE_PREDICATE = (SENTENCE, (NP, VP, PERIOD))
-APPOSITION = (NP, (NP, COMMA, NP, COMMA))
-PATTERNS = [SIMPLE_PREDICATE, APPOSITION]
-
-# TODO: avoid sentences containing pronouns!
-
 # returns a dictionary keyed by PATTERNS, with values lists of the matches to
 # those patterns found in the parse_trees
 def find_matches(parse_trees):
@@ -30,7 +23,11 @@ def extract_pattern_matches(parse_tree, patterns, pattern_matches):
         len(parse_tree) == len(children_match)):
       is_match = True
       for i in xrange(len(parse_tree)): # check that all children match
-        if parse_tree[i].label() != children_match[i]:
+        ith_child = parse_tree[i]
+        # avoid child NPs that are pronouns for ALL patterns
+        np_is_pronoun = (ith_child.label() == NP and
+          isinstance(ith_child[0], Tree) and ith_child[0].label() == PRONOUN)
+        if ith_child.label() != children_match[i] or np_is_pronoun:
           is_match = False
           break
       if is_match: # parent and children labels match; add to matches list
