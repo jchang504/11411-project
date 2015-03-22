@@ -26,9 +26,9 @@ def simple_pred_binary_q(tree):
   vp = tree[1]
   verb = get_verb(vp)
   verb_word = verb[0]
-  if is_modal(verb, vp) or lemma(verb_word) == 'be':
+  if is_modal(verb, vp) or lemma(verb_word) == 'be': # TODO: auxiliary "do"
     uncap(np) # uncapitalize original first word (unless it's NNP)
-    return verb_word.capitalize() + ' ' + tree_to_string(np) + ' ' + ' '.join(vp.leaves()[1:]) + '?' # TODO: hacky - deletes first word of vp
+    return verb_word.capitalize() + ' ' + tree_to_string(np) + ' ' + ' '.join(vp.leaves()[1:]) + '?' # TODO: hacky - deletes first word of vp; instead remove head of top-level VP
   else:
     verb[0] = lemma(verb_word) # convert head verb to infinitive
     uncap(np) # uncapitalize original first word (unless it's NNP)
@@ -37,7 +37,7 @@ def simple_pred_binary_q(tree):
 def apposition_binary_q(tree):
   np_1 = tree[0]
   np_2 = tree[2]
-  copula = 'Are' if is_plural(get_noun(np_1)) else 'Is'
+  copula = 'Are' if is_plural(get_noun(np_1).label()) else 'Is'
   uncap(np_1)
   return copula + ' ' + tree_to_string(np_1) + ' ' + tree_to_string(np_2) + '?'
 
@@ -73,7 +73,7 @@ def get_verb(vp):
   node = vp
   while node.label() == VP:
     for child in node: # move down to the first child which is a VP or verb
-      if child.label().startswith('V') or child.label() == MODAL:
+      if is_verb(child.label()):
         node = child
         break
   return node
@@ -93,7 +93,3 @@ def get_noun(np):
         node = child
         break
   return node
-
-# returns true iff noun is plural
-def is_plural(noun):
-  return noun.label().endswith('S')

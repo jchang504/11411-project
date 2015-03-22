@@ -13,6 +13,7 @@ VERB_PLURAL = 'VBP'
 VERB_3SG = 'VBZ'
 VP = 'VP'
 WHNP = 'WHNP'
+WHADJP = 'WHADJP'
 WHADVP = 'WHADVP'
 COMMA = ','
 PERIOD = '.'
@@ -22,3 +23,11 @@ PERIOD = '.'
 SIMPLE_PREDICATE = (SENTENCE, (NP, VP, PERIOD))
 APPOSITION = (NP, (NP, COMMA, NP, COMMA))
 PATTERNS = [SIMPLE_PREDICATE, APPOSITION]
+
+# helper functions
+
+def is_verb(label):
+  return label.startswith('V') or label == 'MD'
+
+def is_plural(noun_label):
+  return noun_label.endswith('S')
