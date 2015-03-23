@@ -5,6 +5,7 @@ from nltk.tree import Tree
 from tags_and_patterns import *
 from answer_types import *
 
+# TODO: inadequate for e.g. "What did John do?"; shouldn't return THING
 # returns (expected answer type, synsets) for the given question_tree
 # synsets is None except for the "what/which NP" case
 # if wh-question, deletes the question key_node from question_tree
@@ -22,16 +23,19 @@ def answer_type(question_tree):
   else:
     # who/whose, what, which, how many/much __
     if key_label == WHNP:
-      wh_word = key_node[0][0].lower()
-      if wh_word == 'who' or wh_word == 'whose':
-        result = PERSON
-      elif wh_word == 'what' or wh_word == 'which':
-        result = THING
-      if key_node[0].label() == WDT: # wh-word head with noun complement
-        if wh_word in ['what', 'which'] and key_node[-1].label().startswith('NN'):
-          synsets = wn.synsets(key_node[-1][0], pos=wn.NOUN)
-      elif key_node[0].label() == WHADJP: # how many/much __
+      if key_node[0].label() == WHADJP: # how many/much __
         result = AMOUNT
+        synsets = wn.synsets(key_node[-1][0], pos=wn.NOUN)
+      else:
+        wh_word = key_node[0][0].lower()
+        if wh_word == 'who' or wh_word == 'whose':
+          result = PERSON
+        elif wh_word == 'what' or wh_word == 'which':
+          result = THING
+        # wh-word head with noun complement
+        if key_node[0].label() in (WDT, WP_POSS):
+          if wh_word in ('what', 'which', 'whose') and key_node[-1].label().startswith('NN'):
+            synsets = wn.synsets(key_node[-1][0], pos=wn.NOUN)
 
     # where, when, why, how
     elif key_label == WHADVP:

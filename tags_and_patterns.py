@@ -16,6 +16,7 @@ WHNP = 'WHNP'
 WHADJP = 'WHADJP'
 WHADVP = 'WHADVP'
 WDT = 'WDT'
+WP_POSS = 'WP$'
 COMMA = ','
 PERIOD = '.'
 
