@@ -15,6 +15,7 @@ VP = 'VP'
 WHNP = 'WHNP'
 WHADJP = 'WHADJP'
 WHADVP = 'WHADVP'
+WDT = 'WDT'
 COMMA = ','
 PERIOD = '.'
 

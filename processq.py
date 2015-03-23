@@ -29,7 +29,7 @@ def answer_type(question_tree):
         result = THING
       if key_node[0].label() == WDT: # wh-word head with noun complement
         if wh_word in ['what', 'which'] and key_node[-1].label().startswith('NN'):
-          synsets = wn.synsets(key_node[1][0], pos=wn.NOUN)
+          synsets = wn.synsets(key_node[-1][0], pos=wn.NOUN)
       elif key_node[0].label() == WHADJP: # how many/much __
         result = AMOUNT
 
@@ -48,6 +48,7 @@ def answer_type(question_tree):
 
   return (result, synsets)
 
+# TODO: fix for examples like "What city in the clouds did Lando live in?"
 # DFSes (L-to-R) for the question type-identifying node
 # - for wh questions, wh keyword can be preceded by PP
 # - for binary questions, verb should be first
