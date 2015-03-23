@@ -15,8 +15,9 @@ q10 = Tree.fromstring('(ROOT (SBARQ (WHADVP (WRB Why)) (SQ (VBD did) (NP (PRP he
 q11 = Tree.fromstring('(ROOT (SBARQ (WHADVP (WRB How)) (SQ (VBD did) (NP (PRP he)) (VP (VB go))) (. ?)))')
 q12 = Tree.fromstring('(ROOT (SBARQ (WHNP (WHADJP (WRB How) (JJ many)) (NNS pieces)) (SQ (VBD did) (NP (PRP he)) (VP (VB eat))) (. ?)))')
 q13 = Tree.fromstring('(ROOT (SBARQ (WHADJP (WRB How) (JJ much)) (SQ (VBZ does) (NP (PRP he)) (VP (VB eat))) (. ?)))')
+q14 = Tree.fromstring('(ROOT (SQ (VBD Did) (NP (NNP John)) (VP (VB eat) (NP (NP (DT the) (NN burrito)) (SBAR (WHNP (WDT which)) (S (NP (PRP I)) (VP (VBD was) (VP (VBG going) (S (VP (TO to) (VP (VB eat)))))))))) (. ?)))')
 
-def test_answer_type():
+def basic_test():
   a1 = answer_type(q1) # who
   assert(a1[0] == PERSON)
   assert(a1[1] is None)
@@ -56,7 +57,16 @@ def test_answer_type():
   a13 = answer_type(q13) # how much
   assert(a13[0] == AMOUNT)
   assert(a13[1] is None)
+  a14 = answer_type(q14) # binary
+  assert(a14[0] == BINARY)
+  assert(a14[1] is None)
 
-print 'Testing...'
-test_answer_type()
-print 'All good!'
+def real_example_test():
+  pass
+
+print 'Testing basic examples...'
+basic_test()
+print 'Successful.'
+#print 'Testing real examples...'
+#real_example_test()
+#print 'Successful.'
