@@ -64,8 +64,6 @@ def calculate_tf_idf(query, sentence, idfs):
   numerator = tfidf_dot_product(query, sentence, idfs)
   q_bot = tfidf_length(query, idfs)
   s_bot = tfidf_length(sentence, idfs)
-  print 'query:', query
-  print 'sent:', sentence
   return float(numerator) / (q_bot * s_bot)
 
 def get_top_n_sentences(question, sentences, n):
@@ -78,7 +76,6 @@ def get_top_n_sentences(question, sentences, n):
   return scores[::-1][:n]
 
 # TODO: no longer valid
-print get_top_n_sentences("Is a kanjira a South Indian frame drum", text, 1)
 
 
 

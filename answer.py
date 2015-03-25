@@ -18,9 +18,7 @@ user = sys.argv[3] # TODO: unnecessary right now
 
 # do it
 sentences = parse_article.parse_html(article_filename)
-print sentences
-1/0
 with open(questions_filename) as questions_file:
-  for line in file:
+  for line in questions_file:
     (idc, sentence) = select_sentence.get_top_n_sentences(line, sentences, 1)[0]
     print answer_binary.answerBinary(line, sentence)
