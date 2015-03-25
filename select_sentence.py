@@ -29,6 +29,7 @@ def calculate_idfs(text, sentences):
           seen_words.add(word)
   for word in doc_counts:
     idfs[word] = math.log(float(N)/doc_counts[word])
+  idfs["UNKNOWN"] = math.log(float(N))
   return idfs
 
 
@@ -39,7 +40,11 @@ def tfidf_length(sentence, idfs):
   for word in word_tokenize(sentence):
     if word not in seen_words and word not in string.punctuation:
       seen_words.add(word)
-      total += ((word_counts[word] * idfs[word]) ** 2)
+      if word not in idfs:
+        theIdfs = idfs["UNKNOWN"]
+      else:
+        theIdfs = idfs[word]
+      total += ((word_counts[word] * theIdfs) ** 2)
   return total
 
 def tfidf_dot_product(query, sentence, idfs):
@@ -48,19 +53,22 @@ def tfidf_dot_product(query, sentence, idfs):
   tf_q, tf_s = Counter(word_tokenize(query)), Counter(word_tokenize(sentence))
   for word in total_words:
     if word not in string.punctuation:
-      total += (tf_q[word] * tf_s[word] * (idfs[word] ** 2))
+      if word not in idfs:
+        theIdfs = idfs["UNKNOWN"]
+      else:
+        theIdfs = idfs[word]
+      total += (tf_q[word] * tf_s[word] * (theIdfs ** 2))
   return total
 
 def calculate_tf_idf(query, sentence, idfs):
   numerator = tfidf_dot_product(query, sentence, idfs)
   q_bot = tfidf_length(query, idfs)
   s_bot = tfidf_length(sentence, idfs)
+  print 'query:', query
+  print 'sent:', sentence
   return float(numerator) / (q_bot * s_bot)
 
-def get_top_n_sentences(question, text, n):
-  text = text.lower()
-  question = question.lower()
-  sentences = get_sentences(text)
+def get_top_n_sentences(question, sentences, n):
   idfs = calculate_idfs(text, sentences)
   scores = []
   for sentence in sentences:
@@ -69,6 +77,7 @@ def get_top_n_sentences(question, text, n):
   scores.sort()
   return scores[::-1][:n]
 
+# TODO: no longer valid
 print get_top_n_sentences("Is a kanjira a South Indian frame drum", text, 1)
 
 
