@@ -16,6 +16,8 @@ article_filename = sys.argv[1]
 questions_filename = sys.argv[2]
 user = sys.argv[3] # TODO: unnecessary right now
 
+# TODO: use information from previous questions? E.g. use commonly seen NNP as default referent for pronoun in question?
+
 # do it
 sentences = parse_article.parse_html(article_filename)
 with open(questions_filename) as questions_file:

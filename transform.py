@@ -4,6 +4,9 @@ from pattern.en import conjugate, lemma
 from nltk.tree import Tree
 from tags_and_patterns import *
 
+# TODO: rank questions factors: length/complexity, number/type substitutions
+# TODO: make separate function for robust subj-aux inversion, then functions for subtituting in wh-words, confounding
+
 # top-level function that takes a dictionary mapping patterns to matches and
 # returns a list of questions (strings)
 def make_questions(pattern_matches):

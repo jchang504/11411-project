@@ -1,7 +1,14 @@
 #!/usr/bin/python
 
 from nltk.tree import Tree
-from tags_and_patterns import *
+from tags import *
+
+# question base patterns
+
+# TODO: too restrictive - find ways to include more NP VP
+SIMPLE_PREDICATE = (SENTENCE, (NP, VP, PERIOD))
+APPOSITION = (NP, (NP, COMMA, NP, COMMA))
+PATTERNS = [SIMPLE_PREDICATE, APPOSITION]
 
 # returns a dictionary keyed by PATTERNS, with values lists of the matches to
 # those patterns found in the parse_trees
@@ -24,10 +31,7 @@ def extract_pattern_matches(parse_tree, patterns, pattern_matches):
       is_match = True
       for i in xrange(len(parse_tree)): # check that all children match
         ith_child = parse_tree[i]
-        # avoid child NPs that are pronouns for ALL patterns
-        np_is_pronoun = (ith_child.label() == NP and
-          isinstance(ith_child[0], Tree) and ith_child[0].label() == PRONOUN)
-        if ith_child.label() != children_match[i] or np_is_pronoun:
+        if ith_child.label() != children_match[i]:
           is_match = False
           break
       if is_match: # parent and children labels match; add to matches list

@@ -1,13 +1,18 @@
 # more readable names for Stanford parser constituent tags
 # in alphabetical order by tag
 
+PREP = 'IN'
 MODAL = 'MD'
 NOUN = 'NN'
 NOUN_PROPER = 'NNP'
 NOUN_PL = 'NNS'
 NP = 'NP'
+POSS = 'POS'
+PP = 'PP'
 PRONOUN = 'PRP'
+PRONOUN_POSS = 'PRP$'
 SENTENCE = 'S'
+TO = 'TO'
 VERB_PAST = 'VBD'
 VERB_PLURAL = 'VBP'
 VERB_3SG = 'VBZ'
@@ -19,12 +24,6 @@ WDT = 'WDT'
 WP_POSS = 'WP$'
 COMMA = ','
 PERIOD = '.'
-
-# hardcoded patterns for extraction
-
-SIMPLE_PREDICATE = (SENTENCE, (NP, VP, PERIOD))
-APPOSITION = (NP, (NP, COMMA, NP, COMMA))
-PATTERNS = [SIMPLE_PREDICATE, APPOSITION]
 
 # helper functions
 

@@ -2,10 +2,11 @@
 
 from nltk.corpus import wordnet as wn
 from nltk.tree import Tree
-from tags_and_patterns import *
+from tags import *
 from answer_types import *
 
-# TODO: inadequate for e.g. "What did John do?"; shouldn't return THING
+# TODO: try more sophisticated headword identification - use synsets of first
+# NP after wh-word
 # returns (expected answer type, synsets) for the given question_tree
 # synsets is None except for the "what/which NP" case
 # if wh-question, deletes the question key_node from question_tree
