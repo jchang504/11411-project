@@ -9,11 +9,9 @@ TREE_4 = Tree.fromstring('(ROOT (S (NP (DT The) (NN dog)) (VP (ADVP (RB quickly)
 TREE_5 = Tree.fromstring('(ROOT (S (NP (NNP John)) (VP (VBZ has) (VP (VBN eaten) (NP (NNS burritos))))))')
 TREE_6 = Tree.fromstring('(ROOT (S (NP (NNP John)) (VP (VBZ has) (NP (JJ great) (NN burrito) (NN sauce)))))')
 TREE_7 = Tree.fromstring('(ROOT (S (NP (NNP John)) (VP (MD might) (VP (VB have) (VP (VBN eaten) (NP (DT the) (JJ wrong) (NN burrito)))))))')
-# Appositions
-TREE_8 = Tree.fromstring('(ROOT (NP (NP (NNP John)) (, ,) (NP (DT a) (NN man)) (, ,)))')
-TREE_9 = Tree.fromstring('(ROOT (NP (NP (PRP$ Their) (NNS brothers)) (, ,) (NP (DT a) (JJ handsome) (NN lot)) (, ,)))')
+TREE_8 = Tree.fromstring('(ROOT (S (NP (PRP He)) (VP (VBD bought) (NP (DT the) (JJ green) (NN tree)) (PP (IN for) (NP (CD 6) (NNS dollars)))) (. .)))')
 
-trees = [TREE_1, TREE_2, TREE_3, TREE_4, TREE_5, TREE_6, TREE_7, TREE_8, TREE_9]
+trees = [TREE_1, TREE_2, TREE_3, TREE_4, TREE_5, TREE_6, TREE_7, TREE_8]
 
-def test_patterns():
+def test_basic():
   return [get_matches(t) for t in trees]

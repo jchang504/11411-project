@@ -12,11 +12,10 @@ these template are represented as tuples (tree, index) where
     (RC) a tuple of (parent, [subtrees]) where each subtree is a tree;
     this indicates that this tree is labeled parent, with children subtrees
   index: the index in the tree to replace with the wh-word (as a list of
-    integers)
+    integers, possibly a slice on the end)
 '''
 
-# TODO: PRONOUN includes 'it'... should we exclude - for who/whom?
-
+# TODO: PRONOUN includes 'it'... should we exclude - for who/whom?  
 # who
 WHO = ((NP, [set([NOUN_PROPER, PRONOUN])]), [])
 
@@ -33,33 +32,53 @@ WHOSE_PRONOUN_NN = ((NP, [PRONOUN_POSS, NOUN]), [0])
 WHAT = (NP, [])
 
 # which
-# TODO: finish the rest
+# todo: highly restricted for now
+WHICH_NN = ((NP, [DET, ADJ, NOUN]), [slice(0,2)])
+
+# when/where (can't distinguish these at the structural level!)
+WHEN_WHERE_INTRANS = ((SENTENCE, [NP, (VP, [set([VERB_PAST, VERB_PLURAL, VERB_3SG]), PP])]), [1, 1])
+WHEN_WHERE_TRANS = ((SENTENCE, [NP, (VP, [set([VERB_PAST, VERB_PLURAL, VERB_3SG]), NP, PP])]), [1, 2])
+
+# how
+HOW_INTRANS = ((SENTENCE, [NP, (VP, [set([VERB_PAST, VERB_PLURAL, VERB_3SG]), ADVP])]), [1, 1])
+HOW_TRANS = ((SENTENCE, [NP, (VP, [set([VERB_PAST, VERB_PLURAL, VERB_3SG]), NP, ADVP])]), [1, 2])
+
+# how many
+HOW_MANY = ((NP, [CD, NOUN_PL]), [0])
+# todo: hacky, because Stanford can have ADJ^n before NOUN_PL
+HOW_MANY_ADJ = ((NP, [CD, ADJ, NOUN_PL]), [0])
+
+# why
+# TODO: requires specific word 'because'
+# implement by allowing specifying specific words, edit pattern_match and label_match functions
 
 # TODO: include pronoun here to prevent pronouns in questions
 
 # the dictionary wh_able maps wh-words/phrases to list of templates (see above)
 
-wh_able = {'who': [WHO], 'whom': [WHOM], 'whose': [WHOSE_NNP, WHOSE_PRONOUN, WHOSE_NNP_NN, WHOSE_PRONOUN_NN], 'what': [WHAT]}
+wh_able = {'who': [WHO], 'whom': [WHOM], 'whose': [WHOSE_NNP, WHOSE_PRONOUN, WHOSE_NNP_NN, WHOSE_PRONOUN_NN], 'what': [WHAT], 'which': WHICH_NN, 'when/where': [WHEN_WHERE_INTRANS, WHEN_WHERE_TRANS], 'how': [HOW_INTRANS, HOW_TRANS]}
 
 # searches the tree and returns a dictionary mapping the same keys as
-# wh_able to lists of the matches
+# wh_able to lists of tuples (index, subindex) where
+#   index is the index in the tree of the matching constituent
+#   subindex is the index of the wh-word replacee in the constituent
 # REQUIRES: tree is a Tree
 def get_matches(tree):
   matches = dict(zip(wh_able.keys(), [[] for i in xrange(len(wh_able))]))
 
-  def add_matches(tree):
+  def add_matches(tree, index):
     # check current node against all templates
     for wh_word, templates in wh_able.iteritems():
       for template in templates:
         if pattern_match(tree, template[0]):
-          matches[wh_word].append((tree, template[1]))
+          matches[wh_word].append((index, template[1]))
 
     # recursively search children
-    for child in tree:
-      if isinstance(child, Tree):
-        add_matches(child)
+    for i in xrange(len(tree)):
+      if isinstance(tree[i], Tree):
+        add_matches(tree[i], index + [i])
 
-  add_matches(tree)
+  add_matches(tree, [])
   return matches
 
 # returns True iff tree matches pattern (of form above)

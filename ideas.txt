@@ -4,6 +4,9 @@ WHO/WHOM:
   NNP or PRP -> leave gap and verb front, etc.
   *especially PRP -> will be hard!
 
+WHOSE:
+  Genitives
+
 WHAT [/NP]:
   NP -> leave gap etc.
 
@@ -11,25 +14,20 @@ WHICH:
   NP V the AdjP CN -> Which CN V NP?
   Also that/this NN
 
-WHOSE:
-  Genitives
-
-HOW MANY/MUCH [/NP]:
-  ... CD NP -> How many NP ...
+WHEN:
+  (NP, (VP (Vxx, PP))) where IN is 'during', 'at', 'in' [year]
 
 WHERE:
   (NP, (VP (VP, PP))) where IN is 'to', 'in', 'into', 'at'*
 
-WHEN:
-  (NP, (VP (Vxx, PP))) where IN is 'during', 'at', 'in' [year]
-  (NP, VP 'when' ...)
+HOW:
+  (NP, (VP (V ADVP))) -> How NP V?
+
+HOW MANY/MUCH [/NP]:
+  ... CD (NP NNS) -> How many NP ...
 
 WHY:
   S 'because' S -> Why S?
   (S, (PP (IN because (PP (IN of) ...))) NP, VP) or other order
-
-HOW:
-  (NP, (VP (V ADVP))) -> How NP V?
-  (NP, (VP (VP 'as' NP))) -> How NP VP?
 
 WHENCE: from where

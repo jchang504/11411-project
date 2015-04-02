@@ -1,7 +1,10 @@
 # more readable names for Stanford parser constituent tags
 # in alphabetical order by tag
 
+NUMBER = 'CD'
+DET = 'DT'
 PREP = 'IN'
+ADJ = 'JJ'
 MODAL = 'MD'
 NOUN = 'NN'
 NOUN_PROPER = 'NNP'
