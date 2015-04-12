@@ -41,6 +41,13 @@ def sent_to_bin_q(sentence_tree):
 def bin_q_to_sent(question_tree):
   pass # TODO: implement
 
+# transforms the apposition 'np1, np2,' into a declarative sentence
+def apposition_to_sent(np1, np2):
+  head_noun = get_noun(np1)
+  assert(head_noun is not None)
+  copula = 'are' if is_plural(head_noun.label()) else 'is'
+  return ' '.join([tree_to_string(np1), copula, tree_to_string(np2)])
+
 # returns True iff the verb is a modal or auxiliary 'have', 'do'
 def is_modal(head_verb, vp):
   return head_verb.label() == MODAL or (lemma(head_verb[0]) in ['have', 'do']
@@ -51,6 +58,21 @@ ALIASES = {VERB_PAST: 'p', VERB_PLURAL: 'inf', VERB_3SG: '3sg'}
 # returns the alias corresponding to the verb's distinguishable inflection
 def get_inflection(verb):
   return ALIASES.get(verb.label())
+
+# returns the noun which heads (possibly indirectly) np
+def get_noun(np):
+  node = np
+  while node.label() == NP:
+    moved = False
+    for child in node: # move down to the first child which is an NP or noun
+      if child.label().startswith('N'):
+        node = child
+        moved = True
+        break
+    # no child found, return None
+    if not moved:
+      return None
+  return node
 
 # uncapitalizes the phrase, unless its first word is a proper noun
 def uncap(phrase):
