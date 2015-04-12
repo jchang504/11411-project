@@ -1,3 +1,4 @@
 reports/
+raw_project_data/
 *.pyc
 .DS_Store

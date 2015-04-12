@@ -1,6 +1,8 @@
 #!/usr/bin/python
 
-from wh_patterns import *
+import stanford_parser
+import parse_article
+import wh_patterns
 
 TREE_1 = Tree.fromstring('(ROOT (S (NP (NNP John)) (VP (VBD ate) (NP (DT a) (NN burrito)) (PP (IN in) (NP (DT the) (NN park)))) (. .)))')
 TREE_2 = Tree.fromstring('(ROOT (S (NP (DT A) (NN burrito)) (VP (VBD was) (VP (VBN eaten) (PP (IN by) (NP (NNP John)))))))')
@@ -15,3 +17,15 @@ trees = [TREE_1, TREE_2, TREE_3, TREE_4, TREE_5, TREE_6, TREE_7, TREE_8]
 
 def test_basic():
   return [get_matches(t) for t in trees]
+
+def test_real(wiki_filename):
+  stanford = stanford_parser.create_parser('Jemmin')
+  sentences = parse_article.parse_html(wiki_filename)
+  parse_trees = stanford.raw_parse_sents(sentences)
+  for pt in parse_trees:
+    print pretty_matches(wh_patterns.get_matches(pt), pt)
+
+def pretty_matches(matches, tree):
+  for k,v in matches.iteritems():
+    print k
+    #TODO: finish

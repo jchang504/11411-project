@@ -15,10 +15,10 @@ WHICH:
   Also that/this NN
 
 WHEN:
-  (NP, (VP (Vxx, PP))) where IN is 'during', 'at', 'in' [year]
+  (NP, (VP (Vxx, PP))) where IN is 'during', 'at' [time], 'in' [year]
 
 WHERE:
-  (NP, (VP (VP, PP))) where IN is 'to', 'in', 'into', 'at'*
+  (NP, (VP (VP, PP))) where IN is 'on', 'to', 'onto', 'in', 'into', 'at'*
 
 HOW:
   (NP, (VP (V ADVP))) -> How NP V?

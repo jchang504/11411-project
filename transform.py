@@ -2,7 +2,8 @@
 
 from pattern.en import conjugate, lemma
 from nltk.tree import Tree
-from tags_and_patterns import *
+from tags import *
+from extract import SIMPLE_PREDICATE, APPOSITION
 
 # TODO: rank questions factors: length/complexity, number/type substitutions
 # TODO: make separate function for robust subj-aux inversion, then functions for subtituting in wh-words, confounding

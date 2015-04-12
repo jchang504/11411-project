@@ -1,0 +1,5 @@
+- See whether pattern.en or NLTK WordNet is newer/more comprehensive
+- Limit sentence length to prevent memory explosion
+- Stanford parser's raw_parse_sents returns iter(iter(Tree)) with older Stanford; need to convert to list and remove extra [] around each Tree
+- Infinite loop in get_noun if no noun child
+- General robustness everywhere, e.g. get_inflection

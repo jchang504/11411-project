@@ -53,7 +53,6 @@ def answer_type(question_tree):
 
   return (result, synsets)
 
-# TODO: fix for examples like "What city in the clouds did Lando live in?"
 # DFSes (L-to-R) for the question type-identifying node
 # - for wh questions, wh keyword can be preceded by PP
 # - for binary questions, verb should be first

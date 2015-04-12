@@ -15,6 +15,8 @@ these template are represented as tuples (tree, index) where
     integers, possibly a slice on the end)
 '''
 
+# TODO: all of these need ROOT context!
+
 # TODO: PRONOUN includes 'it'... should we exclude - for who/whom?  
 # who
 WHO = ((NP, [set([NOUN_PROPER, PRONOUN])]), [])
@@ -33,15 +35,16 @@ WHAT = (NP, [])
 
 # which
 # todo: highly restricted for now
+# TODO: restrict DET to 'the'
 WHICH_NN = ((NP, [DET, ADJ, NOUN]), [slice(0,2)])
 
 # when/where (can't distinguish these at the structural level!)
-WHEN_WHERE_INTRANS = ((SENTENCE, [NP, (VP, [set([VERB_PAST, VERB_PLURAL, VERB_3SG]), PP])]), [1, 1])
-WHEN_WHERE_TRANS = ((SENTENCE, [NP, (VP, [set([VERB_PAST, VERB_PLURAL, VERB_3SG]), NP, PP])]), [1, 2])
+WHEN_WHERE_INTRANS = ((ROOT, (SENTENCE, [NP, (VP, [set([VERB_PAST, VERB_PLURAL, VERB_3SG]), PP])])), [1, 1])
+WHEN_WHERE_TRANS = ((ROOT, (SENTENCE, [NP, (VP, [set([VERB_PAST, VERB_PLURAL, VERB_3SG]), NP, PP])])), [1, 2])
 
 # how
-HOW_INTRANS = ((SENTENCE, [NP, (VP, [set([VERB_PAST, VERB_PLURAL, VERB_3SG]), ADVP])]), [1, 1])
-HOW_TRANS = ((SENTENCE, [NP, (VP, [set([VERB_PAST, VERB_PLURAL, VERB_3SG]), NP, ADVP])]), [1, 2])
+HOW_INTRANS = ((ROOT, (SENTENCE, [NP, (VP, [set([VERB_PAST, VERB_PLURAL, VERB_3SG]), ADVP])])), [1, 1])
+HOW_TRANS = ((ROOT, (SENTENCE, [NP, (VP, [set([VERB_PAST, VERB_PLURAL, VERB_3SG]), NP, ADVP])])), [1, 2])
 
 # how many
 HOW_MANY = ((NP, [CD, NOUN_PL]), [0])
@@ -56,7 +59,7 @@ HOW_MANY_ADJ = ((NP, [CD, ADJ, NOUN_PL]), [0])
 
 # the dictionary wh_able maps wh-words/phrases to list of templates (see above)
 
-wh_able = {'who': [WHO], 'whom': [WHOM], 'whose': [WHOSE_NNP, WHOSE_PRONOUN, WHOSE_NNP_NN, WHOSE_PRONOUN_NN], 'what': [WHAT], 'which': WHICH_NN, 'when/where': [WHEN_WHERE_INTRANS, WHEN_WHERE_TRANS], 'how': [HOW_INTRANS, HOW_TRANS]}
+wh_able = {'who': [WHO], 'whom': [WHOM], 'whose': [WHOSE_NNP, WHOSE_PRONOUN, WHOSE_NNP_NN, WHOSE_PRONOUN_NN], 'what': [WHAT], 'which': WHICH_NN, 'when/where': [WHEN_WHERE_INTRANS, WHEN_WHERE_TRANS], 'how': [HOW_INTRANS, HOW_TRANS], 'how many': [HOW_MANY, HOW_MANY_ADJ]}
 
 # searches the tree and returns a dictionary mapping the same keys as
 # wh_able to lists of tuples (index, subindex) where

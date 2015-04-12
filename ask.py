@@ -12,9 +12,10 @@ import stanford_parser
 import parse_article
 import extract
 import transform
+import time
 
 article_filename = sys.argv[1]
-num_questions = sys.argv[2]
+num_questions = int(sys.argv[2])
 user = sys.argv[3]
 
 # do it
