@@ -257,30 +257,15 @@ def what(sentence_tree, ner_tags):
     gappies.append((gappy, 'what'))
 
   verb_head = vp[0]
+# check for non-person NP in direct object position
   if is_tensed_verb(verb_head.label()):
     if len(vp) >= 2:
-      vp_index = 1
-      node = vp[vp_index]
-      # check for non-person NP in direct object position
-      if node.label() == NP and not is_ne(sentence_tree, [1,1], ner_tags,
+      obj = vp[1]
+      if obj.label() == NP and not is_ne(sentence_tree, [1,1], ner_tags,
           [PERSON]):
         gappy = copy.deepcopy(sentence_tree)
         del gappy[1,1]
         gappies.append((gappy, 'what'))
-
-      # skip past direct object/ADJP if present
-      if node.label() != PP and len(vp) > 2:
-        vp_index = 2
-        node = vp[vp_index]
-      # check for non-person NP in indirect object position
-      if node.label() == PP:
-        prep = node[0]
-        indir_obj = node[1]
-        if (prep.label() in [TO, PREP] and indir_obj.label() == NP and
-            not is_ne(sentence_tree, [1,vp_index,1], ner_tags, [PERSON])):
-          gappy = copy.deepcopy(sentence_tree)
-          del gappy[1,vp_index,1]
-          gappies.append((gappy, 'what'))
 
   return gappies
 
