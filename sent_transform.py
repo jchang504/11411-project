@@ -18,12 +18,16 @@ def q_type(question_tree):
 
 # inverts the subj and aux (do-insertion if necessary) to transform the
 # declarative sentence into a binary interrogative form
-# REQUIRES: sentence_tree is a Tree(S(NP,VP,.))
+# REQUIRES: sentence_tree is a Tree(S([NP],VP,.)) (returns string version of
+# unaltered sentence for Tree(S(VP)) - for subject gappy sentences)
 # RETURNS: a string. The original subj is uncapitalized (if non-proper) but the
 # aux is NOT capitalized.
 def sent_to_bin_q(sentence_tree):
   assert(sentence_tree.label() == SENTENCE)
   subj = sentence_tree[0]
+  # if subjectless
+  if subj.label() != NP:
+    return tree_to_string(sentence_tree)
   assert(subj.label() == NP)
   vp = sentence_tree[1]
   assert(vp.label() == VP)
@@ -46,6 +50,8 @@ def sent_to_bin_q(sentence_tree):
 
 # inverts the aux (do-deletion if necessary) and subj to transform the binary
 # interrogative into a declarative sentence
+# for subject gap questions Tree(S(VP)), simply returns string version of
+# unaltered Tree
 # REQUIRES: question_tree is a Tree (directly descended from ROOT)
 # RETURNS: a string. The original aux is uncapitalized and the subj is
 # capitalized
@@ -54,6 +60,9 @@ def bin_q_to_sent(question_tree):
   aux = question_tree[0]
   uncap(aux) # uncapitalize the aux
   assert(is_verb(aux.label()))
+  # subject gap
+  if len(question_tree) < 3:
+    return tree_to_string(question_tree)
   subj = question_tree[1]
   assert(subj.label() == NP)
   pred = question_tree[2]
@@ -83,7 +92,7 @@ def apposition_to_sent((np1, np2)):
 # returns True iff the verb is a modal or auxiliary 'have', 'do'
 def is_modal(head_verb, vp):
   return head_verb.label() == MODAL or (lemma(head_verb[0]) in ['have', 'do']
-      and vp[1].label() == VP)
+      and len(vp) > 1 and vp[1].label() == VP)
 
 # Alias strings
 ALIASES = {VERB_PAST: 'p', VERB_PLURAL: 'inf', VERB_3SG: '3sg'}

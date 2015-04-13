@@ -103,6 +103,7 @@ def which(sentence_tree):
     del gappy[0]
     gappies.append((gappy, 'which ' + head_noun_word))
 
+  # TODO: indirect object position
   # check for definite NP in object position
   verb_head = vp[0]
   if is_tensed_verb(verb_head.label()):
@@ -240,6 +241,7 @@ def what(sentence_tree, ner_tags):
     del gappy[0]
     gappies.append((gappy, 'what'))
 
+  # TODO: indirect object
   # check for non-person NP in object position
   verb_head = vp[0]
   if is_tensed_verb(verb_head.label()):
@@ -273,3 +275,15 @@ def is_ne(sentence_tree, indices, ner_tags, ne_classes):
 # returns the number of words in the tree_list
 def get_num_words(tree_list):
   return sum([len(tree.leaves()) for tree in tree_list])
+
+# top-level function - gets the wh-structures for all wh-words
+just_syntax = [how_many, how, why, which]
+needs_ner = [who_whom, where, when, what]
+def get_all_wh(sentence_tree, ner_tags):
+  results = dict([(func.__name__, []) for func in just_syntax + needs_ner])
+  for func in just_syntax:
+    results[func.__name__] = func(sentence_tree)
+  for func in needs_ner:
+    results[func.__name__] = func(sentence_tree, ner_tags)
+
+  return results
