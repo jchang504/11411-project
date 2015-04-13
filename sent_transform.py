@@ -28,13 +28,14 @@ def sent_to_bin_q(sentence_tree):
   vp = sentence_tree[1]
   assert(vp.label() == VP)
   head_verb = vp[0]
-  assert(is_verb(head_verb.label()))
+  assert(is_verb(head_verb.label()) and head_verb.label() != VP)
   verb = head_verb[0]
 
   # has auxiliary
   if is_modal(head_verb, vp) or lemma(verb) == 'be':
     uncap(subj) # uncapitalize original subj (unless proper noun)
-    return ' '.join([verb, tree_to_string(subj), tree_to_string(vp[1])])
+    return ' '.join([verb, tree_to_string(subj)] + [tree_to_string(node) for
+        node in vp[1:]])
 
   # no auxiliary, use do-insertion
   else:
@@ -72,11 +73,12 @@ def bin_q_to_sent(question_tree):
         tree_to_string(pred)])
 
 # transforms the apposition 'np1, np2,' into a declarative sentence
-def apposition_to_sent(np1, np2):
+# RETURNS: a string, punctuated with a period (to fit SIMPLE_PREDICATE pattern)
+def apposition_to_sent((np1, np2)):
   head_noun = get_noun(np1)
   assert(head_noun is not None)
   copula = 'are' if is_plural(head_noun.label()) else 'is'
-  return ' '.join([tree_to_string(np1), copula, tree_to_string(np2)])
+  return ' '.join([tree_to_string(np1), copula, tree_to_string(np2)]) + '.'
 
 # returns True iff the verb is a modal or auxiliary 'have', 'do'
 def is_modal(head_verb, vp):
