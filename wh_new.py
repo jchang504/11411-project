@@ -144,7 +144,7 @@ def who_whom(sentence_tree, ner_tags):
   gappies = []
 
   # person NP in subject position
-  if is_ne(sentence_tree, [0], ner_tags, PERSON):
+  if is_ne(sentence_tree, [0], ner_tags, [PERSON]):
     gappy = copy.deepcopy(sentence_tree)
     del gappy[0]
     gappies.append((gappy, 'who'))
@@ -155,7 +155,8 @@ def who_whom(sentence_tree, ner_tags):
       vp_index = 1
       node = vp[vp_index]
       # check for person NP in direct object position
-      if node.label() == NP and is_ne(sentence_tree, [1,1], ner_tags, PERSON):
+      if (node.label() == NP and
+          is_ne(sentence_tree, [1,1], ner_tags, [PERSON])):
         gappy = copy.deepcopy(sentence_tree)
         del gappy[1,1]
         gappies.append((gappy, 'who'))
@@ -169,7 +170,7 @@ def who_whom(sentence_tree, ner_tags):
         prep = node[0]
         indir_obj = node[1]
         if (prep.label() in [TO, PREP] and indir_obj.label() == NP and
-            is_ne(sentence_tree, [1,vp_index,1], ner_tags, PERSON)):
+            is_ne(sentence_tree, [1,vp_index,1], ner_tags, [PERSON])):
           gappy = copy.deepcopy(sentence_tree)
           del gappy[1,vp_index]
           gappies.append((gappy, prep[0] + ' whom'))
@@ -195,10 +196,36 @@ def where(sentence_tree, ner_tags):
         prep = node[0]
         indir_obj = node[1]
         if (prep.label() in [TO, PREP] and indir_obj.label() == NP and
-            is_ne(sentence_tree, [1,vp_index,1], ner_tags, LOCATION)):
+            is_ne(sentence_tree, [1,vp_index,1], ner_tags, [LOCATION])):
           gappy = copy.deepcopy(sentence_tree)
           del gappy[1,vp_index,1]
           gappies.append((gappy, 'where'))
+
+  return gappies
+
+def when(sentence_tree, ner_tags):
+  vp = sentence_tree[1]
+  gappies = []
+
+  verb_head = vp[0]
+  if is_tensed_verb(verb_head.label()):
+    if len(vp) >= 2:
+      vp_index = 1
+      node = vp[vp_index]
+      # skip past NP/ADJP if present
+      if node.label() != PP and len(vp) > 2:
+        vp_index = 2
+        node = vp[vp_index]
+
+      # check for locative preposition
+      if node.label() == PP:
+        prep = node[0]
+        indir_obj = node[1]
+        if (prep.label() in [TO, PREP] and indir_obj.label() == NP and
+            is_ne(sentence_tree, [1,vp_index,1], ner_tags, [DATE, TIME])):
+          gappy = copy.deepcopy(sentence_tree)
+          del gappy[1,vp_index]
+          gappies.append((gappy, 'when'))
 
   return gappies
 
@@ -208,7 +235,7 @@ def what(sentence_tree, ner_tags):
   gappies = []
 
   # non-person NP in subject position
-  if not is_ne(sentence_tree, [0], ner_tags, PERSON):
+  if not is_ne(sentence_tree, [0], ner_tags, [PERSON]):
     gappy = copy.deepcopy(sentence_tree)
     del gappy[0]
     gappies.append((gappy, 'what'))
@@ -219,7 +246,7 @@ def what(sentence_tree, ner_tags):
     if len(vp) >= 2:
       obj = vp[1]
       if obj.label() == NP and not is_ne(sentence_tree, [1,1], ner_tags,
-          PERSON):
+          [PERSON]):
         gappy = copy.deepcopy(sentence_tree)
         del gappy[1,1]
         gappies.append((gappy, 'what'))
@@ -227,8 +254,8 @@ def what(sentence_tree, ner_tags):
   return gappies
 
 # returns True iff the constituent at indices in the sentence_tree is tagged
-# with ne_class in the ner_tags
-def is_ne(sentence_tree, indices, ner_tags, ne_class):
+# with any of ne_classes in the ner_tags
+def is_ne(sentence_tree, indices, ner_tags, ne_classes):
   # compute the index in ner_tags of the indicated constituent
   node = sentence_tree
   leaf_index = 0
@@ -236,9 +263,9 @@ def is_ne(sentence_tree, indices, ner_tags, ne_class):
     leaf_index += get_num_words(node[:index])
     node = node[index]
 
-  # check if any of the words in the constituent are tagged with ne_class
+  # check if any of the words in the constituent are tagged with ne_classes
   for i in xrange(leaf_index, leaf_index + len(node)):
-    if ner_tags[i][1] == ne_class:
+    if ner_tags[i][1] in ne_classes:
       return True
 
   return False

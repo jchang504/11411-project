@@ -28,7 +28,8 @@ S12 = Tree.fromstring('(ROOT (S (NP (DT Those) (NNS books)) (VP (VBP are) (PP (I
 S13 = Tree.fromstring('(ROOT (S (NP (NNP George) (NNP Green)) (VP (VBD took) (NP (DT the) (NN order)) (PP (IN for) (NP (NNP John) (NNP Smith)))) (. .)))')
 # John took the dog to New York.
 S14 = Tree.fromstring('(ROOT (S (NP (NNP John)) (VP (VBD took) (NP (DT the) (NN dog)) (PP (TO to) (NP (NNP New) (NNP York)))) (. .)))')
-
+# John took the dog in 1940.
+S15 = Tree.fromstring('(ROOT (S (NP (NNP John)) (VP (VBD took) (NP (DT the) (NN dog)) (PP (IN in) (NP (CD 1940)))) (. .)))')
 
 
 
