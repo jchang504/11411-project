@@ -16,7 +16,12 @@ S6 = Tree.fromstring('(ROOT (S (NP (NNP John)) (VP (VBD ate) (SBAR (IN because) 
 S7 = Tree.fromstring('(ROOT (S (NP (NNP John) (NNP Smith)) (VP (VBD went) (PP (TO to) (NP (NNP Virginia))) (S (VP (TO to) (VP (VB fight) (PP (IN in) (NP (NNP December) (CD 1780))))))) (.  .)))') 
 # John Smith ate potatoes on Tuesday.
 S8 = Tree.fromstring('(ROOT (S (NP (NNP John) (NNP Smith)) (VP (VBD ate) (NP (NNS potatoes)) (PP (IN on) (NP (NNP Tuesday)))) (. .)))')
-
+# The green old potatoes are cool.
+S9 = Tree.fromstring('(ROOT (S (NP (DT The) (JJ green) (JJ old) (NNS potatoes)) (VP (VBP are) (ADJP (JJ cool))) (. .)))')
+# John ate the potatoes.
+S10 = Tree.fromstring('(ROOT (S (NP (NNP John)) (VP (VBD ate) (NP (DT the) (NNS potatoes))) (. .)))')
+# John ate the green potatoes.
+S11 = Tree.fromstring('(ROOT (S (NP (NNP John)) (VP (VBD ate) (NP (DT the) (JJ green) (NNS potatoes))) (. .)))')
 
 
 

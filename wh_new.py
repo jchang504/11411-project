@@ -7,9 +7,11 @@ from nltk.tree import Tree
 from tags import *
 import copy
 
-# if this sentence_tree is suitable for asking a 'how many' question, return
-# a list of all possible gappy trees
-# REQUIRES: sentence_tree is a Tree matching SIMPLE_PREDICATE
+# each of these wh-word-named functions takes a Tree (directly descended from
+# ROOT and matching SIMPLE_PREDICATE) and returns a list of tuples (gappy,
+# wh-phrase) where gappy is the sentence_tree with the wh-replacee removed and
+# wh-phrase is the wh-phrase to put at the front of the question
+
 def how_many(sentence_tree):
   np = sentence_tree[0]
   vp = sentence_tree[1]
@@ -19,7 +21,7 @@ def how_many(sentence_tree):
   if is_number_np(np):
     gappy = copy.deepcopy(sentence_tree)
     del gappy[0]
-    gappies.append(gappy)
+    gappies.append((gappy, 'how many'))
 
   # check for number NP in object position
   verb_head = vp[0]
@@ -29,22 +31,18 @@ def how_many(sentence_tree):
       if obj.label() == NP and is_number_np(obj):
         gappy = copy.deepcopy(sentence_tree)
         del gappy[1,1]
-        gappies.append(gappy)
+        gappies.append((gappy, 'how many'))
 
   return gappies
 
 # returns True if this NP is a number NP (e.g. '10 white chickens')
 def is_number_np(np):
-  if np[0].label() != NUMBER:
-    return False
-  for i in xrange(1, len(np)-1):
-    if np[i].label() != ADJ:
-      return False
-  return np[-1].label() == NOUN_PL
+  if np[0].label() == NUMBER:
+    for i in xrange(1, len(np)-1):
+      if np[i].label() != ADJ:
+        return False
+    return np[-1].label() == NOUN_PL
 
-# if this sentence_tree is suitable for asking a 'how' question, return
-# a list of all possible gappy trees
-# REQUIRES: sentence_tree is a Tree matching SIMPLE_PREDICATE
 def how(sentence_tree):
   vp = sentence_tree[1]
   gappies = []
@@ -64,13 +62,10 @@ def how(sentence_tree):
       if node.label() == ADVP:
         gappy = copy.deepcopy(sentence_tree)
         del gappy[1,vp_index]
-        gappies.append(gappy)
+        gappies.append((gappy, 'how'))
 
   return gappies
 
-# if this sentence_tree is suitable for asking a 'why' question, return
-# a list of all possible gappy trees
-# REQUIRES: sentence_tree is a Tree matching SIMPLE_PREDICATE
 def why(sentence_tree):
   vp = sentence_tree[1]
   gappies = []
@@ -92,14 +87,55 @@ def why(sentence_tree):
         if because.label() == PREP and because[0] == 'because':
           gappy = copy.deepcopy(sentence_tree)
           del gappy[1,vp_index]
-          gappies.append(gappy)
+          gappies.append((gappy, 'why'))
 
   return gappies
 
-# if this sentence_tree is suitable for asking a 'what' question, return
-# a list of all possible gappy trees
-# REQUIRES: sentence_tree is a Tree matching SIMPLE_PREDICATE, ner_tagged is
-# the NER-tagged sentence (a list of tuples (word, tag))
+def which(sentence_tree):
+  np = sentence_tree[0]
+  vp = sentence_tree[1]
+  gappies = []
+
+  # definite NP in subject position
+  head_noun_word = is_definite_np(np)
+  if head_noun_word is not None:
+    gappy = copy.deepcopy(sentence_tree)
+    del gappy[0]
+    gappies.append((gappy, 'which ' + head_noun_word))
+
+  # check for definite NP in object position
+  verb_head = vp[0]
+  if is_tensed_verb(verb_head.label()):
+    if len(vp) >= 2:
+      obj = vp[1]
+      if obj.label() == NP:
+        head_noun_word = is_definite_np(obj)
+        if head_noun_word is not None:
+          gappy = copy.deepcopy(sentence_tree)
+          del gappy[1,1]
+          gappies.append((gappy, 'which ' + head_noun_word))
+
+  return gappies
+
+# if np is a definite np, returns the noun word which heads it (a string); else
+# returns None
+def is_definite_np(np):
+  # first child is definite determiner
+  if np[0].label() == DET:
+    det_word = np[0][0].lower()
+    if det_word in ['the', 'this', 'that', 'these', 'those']:
+      # 'the' needs at least 1 adjective
+      if det_word == 'the' and len(np) < 3:
+        return None
+      # any intervening children are adjectives
+      for i in xrange(1, len(np)-1):
+        if np[i].label() != ADJ:
+          return None
+      # last child is head noun
+      if np[-1].label().startswith('NN'):
+        return np[-1][0]
+
+# ner_tagged is the NER-tagged sentence (a list of tuples (word, tag))
 def what(sentence_tree, ner_tags):
   np = sentence_tree[0]
   vp = sentence_tree[1]
@@ -109,7 +145,7 @@ def what(sentence_tree, ner_tags):
   if not is_ne(sentence_tree, [0], ner_tags, PERSON):
     gappy = copy.deepcopy(sentence_tree)
     del gappy[0]
-    gappies.append(gappy)
+    gappies.append((gappy, 'what'))
 
   # check for non-person NP in object position
   verb_head = vp[0]
@@ -120,7 +156,7 @@ def what(sentence_tree, ner_tags):
           PERSON):
         gappy = copy.deepcopy(sentence_tree)
         del gappy[1,1]
-        gappies.append(gappy)
+        gappies.append((gappy, 'what'))
 
   return gappies
 
