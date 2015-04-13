@@ -6,6 +6,8 @@ from nltk.tag.stanford import NERTagger
 USER_STANFORD_PARAMS = {}
 JEMMIN_HOME_ROOT = '/usr/lib/stanford-ner-2014-08-27'
 USER_STANFORD_PARAMS['Jemmin_home'] = [JEMMIN_HOME_ROOT + '/classifiers/english.muc.7class.distsim.crf.ser.gz', JEMMIN_HOME_ROOT + '/stanford-ner.jar'] 
+JEMMIN_GHC_ROOT = '/afs/andrew.cmu.edu/usr10/jemminc/nlp_project/stanford-ner-2014-08-27'
+USER_STANFORD_PARAMS['Jemmin_ghc'] = [JEMMIN_HOME_ROOT + '/classifiers/english.muc.7class.distsim.crf.ser.gz', JEMMIN_HOME_ROOT + '/stanford-ner.jar'] 
 
 # creates an NLTK interface to the Stanford NER Tagger installed on user's
 # machine

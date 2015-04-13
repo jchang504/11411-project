@@ -13,7 +13,7 @@ USER_STANFORD_PARAMS = {}
 JEMMIN_HOME_ROOT = '/usr/lib/stanford-parser-full-2015-01-30'
 USER_STANFORD_PARAMS['Jemmin_home'] = [JEMMIN_HOME_ROOT, JEMMIN_HOME_ROOT, '/usr/bin/java', JEMMIN_HOME_ROOT + '/englishPCFG.ser.gz']
 JEMMIN_GHC_ROOT = '/afs/andrew.cmu.edu/usr/jemminc/nlp_project/stanford-parser-full-2014-08-27'
-USER_STANFORD_PARAMS['Jemmin_GHC'] = [JEMMIN_GHC_ROOT, JEMMIN_GHC_ROOT, '/usr/bin/java', JEMMIN_GHC_ROOT + '/edu/stanford/nlp/models/lexparser/englishPCFG.ser.gz']
+USER_STANFORD_PARAMS['Jemmin_ghc'] = [JEMMIN_GHC_ROOT, JEMMIN_GHC_ROOT, '/usr/bin/java', JEMMIN_GHC_ROOT + '/edu/stanford/nlp/models/lexparser/englishPCFG.ser.gz']
 
 # sets EVs and ENGLISH_PCFG_LOC to correct values for given user
 def set_params(user):
