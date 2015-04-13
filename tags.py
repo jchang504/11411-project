@@ -1,6 +1,8 @@
 # more readable names for Stanford parser constituent tags
 # in alphabetical order by tag
 
+ADJP = 'ADJP'
+ADVP = 'ADVP'
 NUMBER = 'CD'
 DET = 'DT'
 PREP = 'IN'
@@ -18,9 +20,11 @@ PRONOUN = 'PRP'
 PRONOUN_POSS = 'PRP$'
 ROOT = 'ROOT'
 SENTENCE = 'S'
+SBAR = 'SBAR'
 WH_QUESTION = 'SBARQ'
 BIN_QUESTION = 'SQ'
 TO = 'TO'
+VERB_INF = 'VB'
 VERB_PAST = 'VBD'
 VERB_PLURAL = 'VBP'
 VERB_3SG = 'VBZ'
@@ -37,6 +41,9 @@ PERIOD = '.'
 
 def is_verb(label):
   return label.startswith('V') or label == 'MD'
+
+def is_tensed_verb(label):
+  return label in [VERB_PAST, VERB_PLURAL, VERB_3SG]
 
 def is_plural(noun_label):
   return noun_label.endswith('S')
