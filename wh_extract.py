@@ -39,7 +39,7 @@ def how_many(sentence_tree):
 def is_number_np(np):
   if np[0].label() == NUMBER:
     for i in xrange(1, len(np)-1):
-      if np[i].label() != ADJ:
+      if not is_adjective(np[i].label()):
         return False
     return np[-1].label() == NOUN_PL
 
@@ -91,7 +91,7 @@ def why(sentence_tree):
 
   return gappies
 
-def which(sentence_tree):
+def which_whose(sentence_tree):
   np = sentence_tree[0]
   vp = sentence_tree[1]
   gappies = []
@@ -108,28 +108,42 @@ def which(sentence_tree):
     if len(vp) >= 2:
       vp_index = 1
       node = vp[vp_index]
-      # check for definite NP in direct object position
       if node.label() == NP:
+        # check for definite NP in direct object position
         head_noun_word = is_definite_np(node)
         if head_noun_word is not None:
           gappy = copy.deepcopy(sentence_tree)
           del gappy[1,1]
           gappies.append((gappy, 'which ' + head_noun_word))
 
+        # check for possessive pronoun NP in direct object position
+        head_noun_word = is_possessive_np(node)
+        if head_noun_word is not None:
+          gappy = copy.deepcopy(sentence_tree)
+          del gappy[1,1]
+          gappies.append((gappy, 'whose ' + head_noun_word))
+
       # skip past direct object/ADJP if present
       if node.label() != PP and len(vp) > 2:
         vp_index = 2
         node = vp[vp_index]
-      # check for definite NP in indirect object position
       if node.label() == PP:
         prep = node[0]
         indir_obj = node[1]
         if prep.label() in [TO, PREP] and indir_obj.label() == NP:
+          # check for definite NP in indirect object position
           head_noun_word = is_definite_np(indir_obj)
           if head_noun_word is not None:
             gappy = copy.deepcopy(sentence_tree)
-            del gappy[1,vp_index,1]
+            del gappy[1,vp_index]
             gappies.append((gappy, prep[0] + ' which ' + head_noun_word))
+
+          # check for possessive pronoun NP in indirect object position
+          head_noun_word = is_possessive_np(indir_obj)
+          if head_noun_word is not None:
+            gappy = copy.deepcopy(sentence_tree)
+            del gappy[1,vp_index]
+            gappies.append((gappy, prep[0] + ' whose ' + head_noun_word))
 
   return gappies
 
@@ -145,10 +159,25 @@ def is_definite_np(np):
         return None
       # any intervening children are adjectives
       for i in xrange(1, len(np)-1):
-        if np[i].label() != ADJ:
+        if not is_adjective(np[i].label()):
           return None
       # last child is head noun
-      if np[-1].label().startswith('NN'):
+      if is_noun_head(np[-1].label()):
+        return np[-1][0]
+
+# if np is a possessive np (e.g. 'his children'), returns the noun word which
+# heads it (a string); else returns None
+def is_possessive_np(np):
+  # first child is possessive pronoun
+  if np[0].label() == PRONOUN_POSS:
+    poss = np[0][0].lower()
+    if poss in ['his', 'her', 'their']:
+      # any intervening children are adjectives
+      for i in xrange(1, len(np)-1):
+        if not is_adjective(np[i].label()):
+          return None
+      # last child is head noun
+      if is_noun_head(np[-1].label()):
         return np[-1][0]
 
 # the following wh-question types require NER tagging to determine. The extra
@@ -291,7 +320,7 @@ def get_num_words(tree_list):
   return sum([len(tree.leaves()) for tree in tree_list])
 
 # top-level function - gets the wh-structures for all wh-words
-just_syntax = [how_many, how, why, which]
+just_syntax = [how_many, how, why, which_whose]
 needs_ner = [who_whom, where, when, what]
 def get_all_wh(sentence_tree, ner_tags):
   results = dict([(func.__name__, []) for func in just_syntax + needs_ner])

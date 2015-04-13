@@ -42,6 +42,12 @@ PERIOD = '.'
 def is_verb(label):
   return label.startswith('V') or label == 'MD'
 
+def is_noun_head(label):
+  return label.startswith('NN')
+
+def is_adjective(label):
+  return label.startswith('JJ')
+
 def is_tensed_verb(label):
   return label in [VERB_PAST, VERB_PLURAL, VERB_3SG]
 
