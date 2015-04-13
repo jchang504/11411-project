@@ -1,5 +1,3 @@
-#!/usr/bin/python
-
 from nltk.tag.stanford import NERTagger
 
 # locations of Stanford parser/models, Java, and English PCFG model

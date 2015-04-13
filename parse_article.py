@@ -1,5 +1,3 @@
-#!/usr/bin/python
-
 from bs4 import BeautifulSoup
 from nltk.tokenize import sent_tokenize
 

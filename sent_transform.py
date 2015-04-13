@@ -1,5 +1,3 @@
-#!/usr/bin/python
-
 from nltk.tree import Tree
 from tags import *
 from pattern.en import conjugate, lemma

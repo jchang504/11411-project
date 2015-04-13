@@ -9,18 +9,20 @@
 
 import sys
 import parse_article
-import select_sentence
-import answer_binary
+import similarity
 
 article_filename = sys.argv[1]
 questions_filename = sys.argv[2]
-user = sys.argv[3] # TODO: unnecessary right now
 
 # TODO: use information from previous questions? E.g. use commonly seen NNP as default referent for pronoun in question?
 
 # do it
 sentences = parse_article.parse_html(article_filename)
+lisf = similarity.calculate_lisf(sentences)
 with open(questions_filename) as questions_file:
   for line in questions_file:
-    (idc, sentence) = select_sentence.get_top_n_sentences(line, sentences, 1)[0]
-    print answer_binary.answerBinary(line, sentence)
+    print '--------------------------------------------------------'
+    print line
+    print '******'
+    print similarity.closest_sentence(line, sentences, lisf)
+    print '--------------------------------------------------------'

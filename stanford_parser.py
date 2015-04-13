@@ -1,5 +1,3 @@
-#!/usr/bin/python
-
 import os
 from nltk.parse.stanford import StanfordParser
 
