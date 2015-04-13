@@ -1,7 +1,8 @@
-- wh-question generation
-- Limit sentence length to prevent memory explosion
+DONE wh-question generation
+DONE Limit sentence length to prevent memory explosion
 - wh-question answering
 - binary question answering
 - Stanford parser's raw_parse_sents returns iter(iter(Tree)) with older Stanford; need to convert to list and remove extra [] around each Tree
+- Stanford NER puts extra list ([]) around tags on GHC
 - Infinite loop in get_noun if no noun child, etc.
 - General robustness everywhere, e.g. get_inflection
