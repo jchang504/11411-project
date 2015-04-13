@@ -2,3 +2,7 @@
 - Question ranking (prefer single pronoun for Who, avoid pronouns for others)
 - Test/clean sentence_select
 - Enable VP conjuction separation (extract)
+** how takes lots of meaningless adverbs: use a stop list? (also, often,
+generally, typically, usually)
+** which works great!
+** who works great!

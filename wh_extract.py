@@ -103,18 +103,33 @@ def which(sentence_tree):
     del gappy[0]
     gappies.append((gappy, 'which ' + head_noun_word))
 
-  # TODO: indirect object position
-  # check for definite NP in object position
   verb_head = vp[0]
   if is_tensed_verb(verb_head.label()):
     if len(vp) >= 2:
-      obj = vp[1]
-      if obj.label() == NP:
-        head_noun_word = is_definite_np(obj)
+      vp_index = 1
+      node = vp[vp_index]
+      # check for definite NP in direct object position
+      if node.label() == NP:
+        head_noun_word = is_definite_np(node)
         if head_noun_word is not None:
           gappy = copy.deepcopy(sentence_tree)
           del gappy[1,1]
           gappies.append((gappy, 'which ' + head_noun_word))
+
+      # skip past direct object/ADJP if present
+      if node.label() != PP and len(vp) > 2:
+        vp_index = 2
+        node = vp[vp_index]
+      # check for definite NP in indirect object position
+      if node.label() == PP:
+        prep = node[0]
+        indir_obj = node[1]
+        if prep.label() in [TO, PREP] and indir_obj.label() == NP:
+          head_noun_word = is_definite_np(indir_obj)
+          if head_noun_word is not None:
+            gappy = copy.deepcopy(sentence_tree)
+            del gappy[1,vp_index,1]
+            gappies.append((gappy, prep[0] + ' which ' + head_noun_word))
 
   return gappies
 
@@ -241,17 +256,31 @@ def what(sentence_tree, ner_tags):
     del gappy[0]
     gappies.append((gappy, 'what'))
 
-  # TODO: indirect object
-  # check for non-person NP in object position
   verb_head = vp[0]
   if is_tensed_verb(verb_head.label()):
     if len(vp) >= 2:
-      obj = vp[1]
-      if obj.label() == NP and not is_ne(sentence_tree, [1,1], ner_tags,
+      vp_index = 1
+      node = vp[vp_index]
+      # check for non-person NP in direct object position
+      if node.label() == NP and not is_ne(sentence_tree, [1,1], ner_tags,
           [PERSON]):
         gappy = copy.deepcopy(sentence_tree)
         del gappy[1,1]
         gappies.append((gappy, 'what'))
+
+      # skip past direct object/ADJP if present
+      if node.label() != PP and len(vp) > 2:
+        vp_index = 2
+        node = vp[vp_index]
+      # check for non-person NP in indirect object position
+      if node.label() == PP:
+        prep = node[0]
+        indir_obj = node[1]
+        if (prep.label() in [TO, PREP] and indir_obj.label() == NP and
+            not is_ne(sentence_tree, [1,vp_index,1], ner_tags, [PERSON])):
+          gappy = copy.deepcopy(sentence_tree)
+          del gappy[1,vp_index,1]
+          gappies.append((gappy, 'what'))
 
   return gappies
 
