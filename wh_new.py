@@ -135,7 +135,47 @@ def is_definite_np(np):
       if np[-1].label().startswith('NN'):
         return np[-1][0]
 
-# ner_tagged is the NER-tagged sentence (a list of tuples (word, tag))
+# the following wh-question types require NER tagging to determine. The extra
+# argument ner_tagged is the NER-tagged sentence (a list of tuples (word, tag))
+
+def who_whom(sentence_tree, ner_tags):
+  np = sentence_tree[0]
+  vp = sentence_tree[1]
+  gappies = []
+
+  # person NP in subject position
+  if is_ne(sentence_tree, [0], ner_tags, PERSON):
+    gappy = copy.deepcopy(sentence_tree)
+    del gappy[0]
+    gappies.append((gappy, 'who'))
+
+  verb_head = vp[0]
+  if is_tensed_verb(verb_head.label()):
+    if len(vp) >= 2:
+      vp_index = 1
+      node = vp[vp_index]
+      # check for person NP in direct object position
+      if node.label() == NP and is_ne(sentence_tree, [1,1], ner_tags, PERSON):
+        gappy = copy.deepcopy(sentence_tree)
+        del gappy[1,1]
+        gappies.append((gappy, 'who'))
+
+      # skip past direct object if present
+      if node.label() == NP and len(vp) > 2:
+        vp_index = 2
+        node = vp[vp_index]
+      # check for person NP in indirect object position
+      if node.label() == PP:
+        prep = node[0]
+        indir_obj = node[1]
+        if (prep.label() in [TO, PREP] and indir_obj.label() == NP and
+            is_ne(sentence_tree, [1,vp_index,1], ner_tags, PERSON)):
+          gappy = copy.deepcopy(sentence_tree)
+          del gappy[1,vp_index]
+          gappies.append((gappy, prep[0] + ' whom'))
+
+  return gappies
+
 def what(sentence_tree, ner_tags):
   np = sentence_tree[0]
   vp = sentence_tree[1]
@@ -164,13 +204,16 @@ def what(sentence_tree, ner_tags):
 # with ne_class in the ner_tags
 def is_ne(sentence_tree, indices, ner_tags, ne_class):
   # compute the index in ner_tags of the indicated constituent
+  node = sentence_tree
   leaf_index = 0
   for index in indices:
-    leaf_index += get_num_words(sentence_tree[:index])
-    node = sentence_tree[index]
+    leaf_index += get_num_words(node[:index])
+    node = node[index]
 
   # check if any of the words in the constituent are tagged with ne_class
   for i in xrange(leaf_index, leaf_index + len(node)):
+    print i
+    print ner_tags[i]
     if ner_tags[i][1] == ne_class:
       return True
 

@@ -22,6 +22,11 @@ S9 = Tree.fromstring('(ROOT (S (NP (DT The) (JJ green) (JJ old) (NNS potatoes)) 
 S10 = Tree.fromstring('(ROOT (S (NP (NNP John)) (VP (VBD ate) (NP (DT the) (NNS potatoes))) (. .)))')
 # John ate the green potatoes.
 S11 = Tree.fromstring('(ROOT (S (NP (NNP John)) (VP (VBD ate) (NP (DT the) (JJ green) (NNS potatoes))) (. .)))')
+# Those books are for John Smith.
+S12 = Tree.fromstring('(ROOT (S (NP (DT Those) (NNS books)) (VP (VBP are) (PP (IN for) (NP (NNP John) (NNP Smith)))) (. .)))')
+# George Green took the order for John Smith.
+S13 = Tree.fromstring('(ROOT (S (NP (NNP George) (NNP Green)) (VP (VBD took) (NP (DT the) (NN order)) (PP (IN for) (NP (NNP John) (NNP Smith)))) (. .)))')
+
 
 
 
