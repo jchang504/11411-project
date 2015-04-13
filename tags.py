@@ -47,3 +47,13 @@ def is_tensed_verb(label):
 
 def is_plural(noun_label):
   return noun_label.endswith('S')
+
+# Stanford 7-class NER Tagger class names
+
+LOCATION = 'LOCATION'
+ORGANIZATION = 'ORGANIZATION'
+DATE = 'DATE'
+MONEY = 'MONEY'
+PERSON = 'PERSON'
+PERCENT = 'PERCENT'
+TIME = 'TIME'

@@ -12,6 +12,12 @@ S4 = Tree.fromstring('(ROOT (S (NP (CD 10) (NNS people)) (VP (VBD ate) (ADVP (RB
 S5 = Tree.fromstring('(ROOT (S (NP (NNP John)) (VP (VBD ate) (PP (IN in) (NP (DT the) (NN park))) (ADVP (RB slowly))) (. .)))')
 # John ate because you did.
 S6 = Tree.fromstring('(ROOT (S (NP (NNP John)) (VP (VBD ate) (SBAR (IN because) (S (NP (PRP you)) (VP (VBD did))))) (. .)))')
+# John Smith went to Virginia to fight in December 1780.
+S7 = Tree.fromstring('(ROOT (S (NP (NNP John) (NNP Smith)) (VP (VBD went) (PP (TO to) (NP (NNP Virginia))) (S (VP (TO to) (VP (VB fight) (PP (IN in) (NP (NNP December) (CD 1780))))))) (.  .)))') 
+# John Smith ate potatoes on Tuesday.
+S8 = Tree.fromstring('(ROOT (S (NP (NNP John) (NNP Smith)) (VP (VBD ate) (NP (NNS potatoes)) (PP (IN on) (NP (NNP Tuesday)))) (. .)))')
+
+
 
 
 # Did John eat a burrito in the park?
