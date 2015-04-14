@@ -2,17 +2,39 @@ from nltk.tree import Tree
 from tags import *
 from pattern.en import conjugate, lemma
 
-WH = 'wh'
 BINARY = 'binary'
-# identifies the question as either WH or BINARY, or returns None if unsure
-# question_tree is a Tree (directly descended from ROOT)
+
+# identifies the question as either wh or binary, and returns a tuple (type,
+# bin_form) where type is the wh_word or BINARY, and bin_form is the question
+# with the wh_phrase removed (should be a BIN_QUESTION); if can't identify,
+# returns (None, None)
+# REQUIRES: question_tree is a Tree (directly descended from ROOT)
 def q_type(question_tree):
   if question_tree.label() == WH_QUESTION:
-    return WH
+    question_word = first_wh(question_tree[0].leaves())
+    return (question_word, question_tree[1])
   elif question_tree.label() == BIN_QUESTION:
-    return BINARY
+    return (BINARY, question_tree)
   else:
-    return None
+    return (None, None)
+
+# finds and returns the first wh word (or two for 'how many') found in
+# question_words
+def first_wh(question_words):
+  wh_words = ['how', 'why', 'which', 'whose', 'who', 'whom', 'where', 'when', 'what']
+  for i in xrange(len(question_words)):
+    word = question_words[i].lower()
+    if word in wh_words:
+      if word == 'how':
+        if len(question_words) > (i+1) and question_words[i+1] == 'many':
+          return 'how_many'
+        else:
+          return 'how'
+      elif word == 'who' or word == 'whom':
+        return 'who_whom'
+      else:
+        return word
+  return None
 
 # inverts the subj and aux (do-insertion if necessary) to transform the
 # declarative sentence into a binary interrogative form

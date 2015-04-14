@@ -105,7 +105,7 @@ def why(sentence_tree, answer_mode):
 
   return gappies
 
-def which_whose(sentence_tree, answer_mode):
+def which(sentence_tree, answer_mode):
   np = sentence_tree[0]
   vp = sentence_tree[1]
   gappies = []
@@ -136,6 +136,48 @@ def which_whose(sentence_tree, answer_mode):
           del gappy[1,1]
           gappies.append((gappy, gap_phrase))
 
+      # skip past direct object/ADJP if present
+      if node.label() != PP and len(vp) > 2:
+        vp_index = 2
+        node = vp[vp_index]
+
+      if node.label() == PP:
+        prep = node[0]
+        indir_obj = node[1]
+        if prep.label() in [TO, PREP] and indir_obj.label() == NP:
+          # check for definite NP in indirect object position
+          head_noun_word = is_definite_np(indir_obj)
+          if head_noun_word is not None:
+            gappy = copy.deepcopy(sentence_tree)
+            gap_phrase = prep[0] + ' which ' + head_noun_word# default ask mode
+            if answer_mode:
+              gap_phrase = copy.deepcopy(gappy[1,vp_index])
+            del gappy[1,vp_index]
+            gappies.append((gappy, gap_phrase))
+
+  return gappies
+
+def whose(sentence_tree, answer_mode):
+  np = sentence_tree[0]
+  vp = sentence_tree[1]
+  gappies = []
+
+  # definite NP in subject position
+  head_noun_word = is_possessive_np(np)
+  if head_noun_word is not None:
+    gappy = copy.deepcopy(sentence_tree)
+    gap_phrase = 'whose ' + head_noun_word # default ask mode
+    if answer_mode:
+      gap_phrase = copy.deepcopy(gappy[0])
+    del gappy[0]
+    gappies.append((gappy, gap_phrase))
+
+  verb_head = vp[0]
+  if is_tensed_verb(verb_head.label()):
+    if len(vp) >= 2:
+      vp_index = 1
+      node = vp[vp_index]
+      if node.label() == NP:
         # check for possessive pronoun NP in direct object position
         head_noun_word = is_possessive_np(node)
         if head_noun_word is not None:
@@ -154,16 +196,6 @@ def which_whose(sentence_tree, answer_mode):
         prep = node[0]
         indir_obj = node[1]
         if prep.label() in [TO, PREP] and indir_obj.label() == NP:
-          # check for definite NP in indirect object position
-          head_noun_word = is_definite_np(indir_obj)
-          if head_noun_word is not None:
-            gappy = copy.deepcopy(sentence_tree)
-            gap_phrase = prep[0] + ' which ' + head_noun_word# default ask mode
-            if answer_mode:
-              gap_phrase = copy.deepcopy(gappy[1,vp_index])
-            del gappy[1,vp_index]
-            gappies.append((gappy, gap_phrase))
-
           # check for possessive pronoun NP in indirect object position
           head_noun_word = is_possessive_np(indir_obj)
           if head_noun_word is not None:
@@ -333,7 +365,7 @@ def what(sentence_tree, ner_tags, answer_mode):
     gappies.append((gappy, gap_phrase))
 
   verb_head = vp[0]
-# check for non-person NP in direct object position
+  # check for non-person NP in direct object position
   if is_tensed_verb(verb_head.label()):
     if len(vp) >= 2:
       obj = vp[1]
@@ -370,13 +402,13 @@ def get_num_words(tree_list):
   return sum([len(tree.leaves()) for tree in tree_list])
 
 # top-level function - gets the wh-structures (asking mode) for all wh-words
-just_syntax = [how_many, how, why, which_whose]
-needs_ner = [who_whom, where, when, what]
+JUST_SYNTAX = [how_many, how, why, which, whose]
+NEEDS_NER = [who_whom, where, when, what]
 def get_all_wh(sentence_tree, ner_tags):
-  results = dict([(func.__name__, []) for func in just_syntax + needs_ner])
-  for func in just_syntax:
+  results = dict([(func.__name__, []) for func in JUST_SYNTAX + NEEDS_NER])
+  for func in JUST_SYNTAX:
     results[func.__name__] = func(sentence_tree, False)
-  for func in needs_ner:
+  for func in NEEDS_NER:
     results[func.__name__] = func(sentence_tree, ner_tags, False)
 
   return results
