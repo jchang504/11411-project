@@ -73,8 +73,8 @@ def sent_to_bin_q(sentence_tree):
 # for subject gap questions Tree(S(VP)), simply returns string version of
 # unaltered Tree
 # REQUIRES: question_tree is a Tree (directly descended from ROOT)
-# RETURNS: a string. The original aux is uncapitalized and the subj is
-# capitalized
+# RETURNS: a string. The original aux is uncapitalized but the subj is
+# NOT capitalized
 def bin_q_to_sent(question_tree):
   assert(question_tree.label() == BIN_QUESTION)
   aux = question_tree[0]
@@ -98,8 +98,7 @@ def bin_q_to_sent(question_tree):
 
   # real (non-do) auxiliary
   else:
-    return ' '.join([tree_to_string(subj).capitalize(), aux[0],
-        tree_to_string(pred)])
+    return ' '.join([tree_to_string(subj), aux[0], tree_to_string(pred)])
 
 # transforms the apposition 'np1, np2,' into a declarative sentence
 # RETURNS: a string, punctuated with a period (to fit SIMPLE_PREDICATE pattern)

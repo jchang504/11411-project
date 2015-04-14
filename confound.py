@@ -9,6 +9,16 @@ WN_NOUN = wordnet.NOUN
 WN_ADJ = wordnet.ADJ
 WN_ADV = wordnet.ADV
 
+# returns a set of hyponyms of word as a part-of-speech, according to
+# WordNet
+def hyponyms(word, part_of_speech):
+  hypos = set()
+  for synset in wordnet.synsets(word, pos=part_of_speech):
+    for hyponym in synset.hyponyms():
+      for lemma in hyponym.lemmas():
+        hypos.add(lemma.name().replace('_', ' '))
+  return hypos
+
 # returns a set of synonyms of word as a part-of-speech, according to
 # WordNet (lemmas of the same synset)
 def synonyms(word, part_of_speech):
