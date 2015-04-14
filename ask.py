@@ -15,6 +15,8 @@ import sent_transform
 import wh_extract
 import stanford_ner
 import confound
+import rank
+import aesthetics
 
 article_filename = sys.argv[1]
 num_questions = int(sys.argv[2])
@@ -75,7 +77,7 @@ for i in xrange(len(preds)):
   except:
     pass
 
-# rank questions TODO
-print wh_questions
-print bin_questions
-print confounded_questions
+final = rank.get_best_n(wh_questions, bin_questions, confounded_questions,
+    num_questions)
+for q in final:
+  print aesthetics.make_pretty(q, '?')

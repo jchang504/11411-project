@@ -17,6 +17,7 @@ import stanford_ner
 import wh_extract
 import similarity
 import confound
+import aesthetics
 
 # returns the best found answer of question_type for the transformed q, based
 # on the selected answer_sent
@@ -137,14 +138,16 @@ for i in xrange(len(questions)):
 
     # binary question
     if question_type == sent_transform.BINARY:
-      #try:
-      print answer_bin(answer_sent, transformed_q)
-      #except:
-      #  print answer_sent
+      try:
+        answer = answer_bin(answer_sent, transformed_q)
+        print aesthetics.make_pretty(answer, '.')
+      except:
+        print answer_sent
 
     # wh-question
     else:
       try:
-        print answer_wh(question_type, answer_sent, transformed_q)
+        answer = answer_wh(question_type, answer_sent, transformed_q)
+        print aesthetics.make_pretty(answer, '.')
       except:
         print answer_sent

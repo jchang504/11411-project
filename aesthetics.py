@@ -4,10 +4,10 @@ import re
 # punctuation, replacing those ugly -LRB- and -RRB-, and capitalizing the
 # sentence
 def make_pretty(sentence, end_punctuation):
-  sentence.replace('-LRB- ', '(')
-  sentence.replace(' -RRB-', ')')
+  sentence = sentence.replace('-LRB- ', '(')
+  sentence = sentence.replace(' -RRB-', ')')
   sentence = re.sub(r' *([,;:\.\?!])', r'\1', sentence)
-  m = re.match(r'([^\.\?!]+)[\.\?!]*', sentence)
+  m = re.match(r'(.+\w+)[\.\?!,;: ]*', sentence)
   sentence = m.group(1)
   sentence = sentence[0].upper() + sentence[1:]
   return sentence + end_punctuation
