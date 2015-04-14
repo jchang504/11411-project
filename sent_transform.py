@@ -86,7 +86,7 @@ def bin_q_to_sent(question_tree):
   subj = question_tree[1]
   assert(subj.label() == NP)
   pred = question_tree[2]
-  assert(pred.label() == VP or pred.label() == NP)
+  assert(pred.label() == VP or pred.label() == NP or pred.label() == ADJP)
 
   # do-deletion
   if lemma(aux[0]) == 'do':

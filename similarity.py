@@ -6,41 +6,48 @@ from collections import Counter, defaultdict
 # Tokenize sentences with NLTK's word_tokenize to get lists of tokens.
 # Represent tf-isf vectors as dictionaries mapping words to weights
 
-# returns sentence in candidates st the tf-isf vector for sentence is the
-# closest to target of all candidates. Use lisf for the inverse sentence freqs
+# returns index of c in candidates st the tf-isf vector for c is the closest
+# to target of all candidates. Use lisf for the inverse sentence freqs
 # REQUIRES: candidates is the same list used to calculate lisf!
-def closest_sentence(target, candidates, lisf):
-  best_sentence = None
+def closest_sentence(target, candidates, lisf, tiebreak=False):
+  best_cand_index = 0
   best_cosine = 0
+  best_overlap = 0
 
-  for candidate in candidates:
+  # calculate target sentence vector
+  target_words = word_tokenize(target)
+  target_tf = tf(target_words)
+  target_vector = {}
+  for word in target_tf:
+    target_vector[word] = target_tf[word] * lisf[word]
+
+  # for each candidate:
+  for cand_index in xrange(len(candidates)):
+    candidate = candidates[cand_index]
+    # calculate candidate sentence vector
+    candidate_words = word_tokenize(candidate)
+    candidate_tf = tf(candidate_words)
+    candidate_vector = {}
+    for word in candidate_tf:
+      candidate_vector[word] = candidate_tf[word] * lisf[word]
+
     # compare cosine similarity to best so far
-    cosine_sim = cosine_similarity(target, candidate, lisf)
+    cosine_sim = dot(target_vector, candidate_vector) / norm(candidate_vector)
     if cosine_sim > best_cosine:
-      best_sentence = candidate
+      best_cand_index = cand_index
       best_cosine = cosine_sim
+      if tiebreak:
+        best_overlap = overlap(target_words, candidate_words)
 
-  return best_sentence
+    # possible tiebreak with overlap
+    elif cosine_sim == best_cosine and tiebreak:
+      candidate_overlap = overlap(target_words, candidate_words)
+      if candidate_overlap > best_overlap:
+        best_cand_index = cand_index
+        # best_cosine is same
+        best_overlap = candidate_overlap
 
-# return the cosine similarity of the tf-isf vectors of s1 and s2
-# REQUIRES: s1, s2 are sentences from the list used to calculate lisf
-def cosine_similarity(s1, s2, lisf):
-
-  # calculate vectors
-  s1_words = word_tokenize(s1)
-  s1_tf = tf(s1_words)
-  s1_vector = {}
-  for word in s1_tf:
-    s1_vector[word] = s1_tf[word] * lisf[word]
-
-  s2_words = word_tokenize(s2)
-  s2_tf = tf(s2_words)
-  s2_vector = {}
-  for word in s2_tf:
-    s2_vector[word] = s2_tf[word] * lisf[word]
-
-  # calculate cosine sim
-  return dot(s1_vector, s2_vector) / (norm(s1_vector) * norm(s2_vector))
+  return best_cand_index
 
 # returns a tuple (sentence, overlap) where sentence is the sentence in
 # candidates with the longest contiguous sequence of overlapping words in

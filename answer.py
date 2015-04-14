@@ -15,6 +15,32 @@ import stanford_ner
 import wh_extract
 import similarity
 
+# returns the best found answer of question_type for the transformed q, based
+# on the selected answer_sent
+def answer_wh(question_type, answer_sent, transformed_q):
+  # parse answer sentence and peel out of list and ROOT context
+  answer_tree = parser.raw_parse(answer_sent)[0][0]
+  tags = tagger.tag(sent_transform.tree_to_string(answer_tree))
+      
+  # find any constituent that matches the question_type
+  condition_func = getattr(wh_extract, 'is_' + question_type)
+  matches = wh_extract.find_all_matches(answer_tree, [], tags,
+      condition_func)
+  
+  if len(matches) > 0:
+    # compare gappy forms to transformed q
+    gappies = [sent_transform.tree_to_string(gappy) for (gappy, answer) in
+        matches]
+    best_index = similarity.closest_sentence(transformed_q, gappies,
+        lisf, tiebreak=True)
+    return sent_transform.tree_to_string(matches[best_index][1])
+      
+  # last resort: just return sentence
+  else:
+    return answer_sent
+
+### MAIN IS HERE ###
+
 article_filename = sys.argv[1]
 questions_filename = sys.argv[2]
 user = sys.argv[3]
@@ -44,40 +70,23 @@ for i in xrange(len(questions)):
 
   # can't determine q type - best we can do is print the closest sentence
   if question_type is None:
-    print similarity.closest_sentence(questions[i], sentences, lisf)
+    sent_index = similarity.closest_sentence(questions[i], sentences, lisf)
+    print 'unident:', sentences[sent_index]
 
   else:
     # find the closest match sentence from the article
-    transformed_q = sent_transform.bin_q_to_sent(bin_form)
-    answer_sent = similarity.closest_sentence(transformed_q, sentences, lisf)
+    try:
+      transformed_q = sent_transform.bin_q_to_sent(bin_form)
+    except AssertionError:
+      transformed_q = sent_transform.tree_to_string(bin_form)
+
+    sent_index = similarity.closest_sentence(transformed_q, sentences, lisf)
+    answer_sent = sentences[sent_index]
 
     # binary question
     if question_type == sent_transform.BINARY:
-      pass
+      print 'binary q answer'
 
     # wh-question
     else:
-      answer_trees = parser.raw_parse(answer_sentence)
-      wh_searchable = sent_extract.find_predicates(answer_trees)
-
-      # has canonical wh-gap structures - consider these answers first
-      if len(wh_searchable) > 0:
-        wh_func = getattr(wh_extract, question_type)
-        if wh_func in wh_extract.JUST_SYNTAX:
-          wh_matches = wh_func(wh_searchable[0], True)
-        elif wh_func in wh_extract.NEEDS_NER:
-          tags = tagger.tag(sent_transform.tree_to_string(wh_searchable[0]))
-          wh_matches = wh_func(wh_searchable[0], tags, True)
-
-        # consider canonical form answers
-        for (gappy, gap_phrase) in wh_matches:
-          
-        # compare cosine sims of each gappy with transformed bin_form sentence
-        # tiebreak with max_overlap
-      # if not searchable or no wh_matches, fall back to simple matches
-      # what -> NP, who -> PERSON, etc.
-      # TODO: pronouns!!!
-
-
-  #print similarity.max_overlap_sentence(question, sentences)
-  print '--------------------------------------------------------'
+      print 'wh:', answer_wh(question_type, answer_sent, transformed_q)
