@@ -20,7 +20,7 @@ import similarity
 def answer_wh(question_type, answer_sent, transformed_q):
   # parse answer sentence and peel out of list and ROOT context
   answer_tree = parser.raw_parse(answer_sent)[0][0]
-  tags = tagger.tag(sent_transform.tree_to_string(answer_tree))
+  tags = tagger.tag([sent_transform.tree_to_string(answer_tree)])
       
   # find any constituent that matches the question_type
   condition_func = getattr(wh_extract, 'is_' + question_type)
@@ -47,6 +47,8 @@ user = sys.argv[3]
 
 # parse HTML into sentences
 sentences = parse_article.parse_html(article_filename)
+# trim super-long sentences (60 or more words)
+sentences = [s for s in sentences if s.count(' ') < 60]
 
 # calculate log inverse sentence frequencies
 lisf = similarity.calculate_lisf(sentences)
@@ -77,7 +79,7 @@ for i in xrange(len(questions)):
     # find the closest match sentence from the article
     try:
       transformed_q = sent_transform.bin_q_to_sent(bin_form)
-    except AssertionError:
+    except:
       transformed_q = sent_transform.tree_to_string(bin_form)
 
     sent_index = similarity.closest_sentence(transformed_q, sentences, lisf)
@@ -89,4 +91,8 @@ for i in xrange(len(questions)):
 
     # wh-question
     else:
-      print 'wh:', answer_wh(question_type, answer_sent, transformed_q)
+      try:
+        print 'wh:', answer_wh(question_type, answer_sent, transformed_q)
+      except:
+        print 'error calling: answer_wh(%s, %s, %s)' % (question_type,
+            answer_sent, transformed_q)

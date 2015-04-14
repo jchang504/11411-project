@@ -1,7 +1,7 @@
-- Wordnet Confounding
+DONE Wordnet Confounding
 - Question ranking (prefer single pronoun for Who, avoid pronouns for others)
 - Enable VP conjuction separation (extract)
-** how takes lots of meaningless adverbs: use a stop list? (also, often,
+DONE how takes lots of meaningless adverbs: use a stop list? (also, often,
 generally, typically, usually)
 ** which works great!
 ** who works great!

@@ -67,7 +67,7 @@ def how(sentence_tree, answer_mode):
           node = vp[vp_index]
 
       # found ADVP?
-      if node.label() == ADVP:
+      if is_meaningful_adverb(node):
         gappy = copy.deepcopy(sentence_tree)
         gap_phrase = 'how' # default ask mode
         if answer_mode:
@@ -391,8 +391,8 @@ def what(sentence_tree, ner_tags, answer_mode):
 
   return gappies
 
-# returns True iff the constituent at indices in the sentence_tree is tagged
-# with any of ne_classes in the ner_tags
+# returns True iff all the words in the constituent at indices in the
+# sentence_tree are tagged with any of ne_classes in the ner_tags
 def is_ne(sentence_tree, indices, ner_tags, ne_classes):
   # compute the index in ner_tags of the indicated constituent
   node = sentence_tree
@@ -401,12 +401,11 @@ def is_ne(sentence_tree, indices, ner_tags, ne_classes):
     leaf_index += get_num_words(node[:index])
     node = node[index]
 
-  # check if any of the words in the constituent are tagged with ne_classes
-  for i in xrange(leaf_index, leaf_index + len(node)):
-    if ner_tags[i][1] in ne_classes:
-      return True
-
-  return False
+  # check if all of the words in the constituent are tagged with ne_classes
+  for i in xrange(leaf_index, leaf_index + get_num_words([node])):
+    if ner_tags[i][1] not in ne_classes:
+      return False
+  return True
   
 # returns the number of words in the tree_list
 def get_num_words(tree_list):
@@ -450,11 +449,11 @@ def is_who_whom(sentence_tree, indices, ner_tags):
 
 def is_where(sentence_tree, indices, ner_tags):
   return (sentence_tree[indices].label() == PP and
-      is_ne(sentence_tree, indices, ner_tags, [LOCATION]))
+      is_ne(sentence_tree, indices + [1], ner_tags, [LOCATION]))
 
 def is_when(sentence_tree, indices, ner_tags):
   return (sentence_tree[indices].label() == PP and
-      is_ne(sentence_tree, indices, ner_tags, [DATE, TIME]))
+      is_ne(sentence_tree, indices + [1], ner_tags, [DATE, TIME]))
 
 def is_what(sentence_tree, indices, ner_tags):
   return (sentence_tree[indices].label() == NP and
@@ -467,7 +466,7 @@ def find_all_matches(sentence_tree, indices, ner_tags, condition_func):
   matches = []
 
   # check current node
-  if condition_func(sentence_tree, indices, ner_tags):
+  if condition_func(sentence_tree, indices, ner_tags) and indices != []:
     gappy = copy.deepcopy(sentence_tree)
     answer = gappy[indices]
     del gappy[indices]

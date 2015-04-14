@@ -7,12 +7,14 @@
 #   the Stanford parser
 
 import sys
+import copy
 import parse_article
 import stanford_parser
-import extract
+import sent_extract
 import sent_transform
-import wh_gapify
+import wh_extract
 import stanford_ner
+import confound
 
 article_filename = sys.argv[1]
 num_questions = int(sys.argv[2])
@@ -26,7 +28,7 @@ parser = stanford_parser.create_parser(user)
 parse_trees = parser.raw_parse_sents(sentences)
 
 # augment trees with appositions transformed into predicates
-appos = extract.find_appositions(parse_trees)
+appos = sent_extract.find_appositions(parse_trees)
 appo_sentences = [sent_transform.apposition_to_sent(appo) for appo in appos]
 transformed = parser.raw_parse_sents(appo_sentences)
 parse_trees += transformed
@@ -35,29 +37,45 @@ parse_trees += transformed
 tagger = stanford_ner.create_tagger(user)
 
 # now find all predicates in augmented tree list
-preds = extract.find_predicates(parse_trees)
+preds = sent_extract.find_predicates(parse_trees)
+
+wh_questions = dict([(wh, []) for wh in ['how_many', 'how', 'why', 'which',
+'whose', 'who_whom', 'where', 'when', 'what']])
+bin_questions = []
+confounded_questions = []
+# make questions from predicates
 for i in xrange(len(preds)):
   sent = sent_transform.tree_to_string(preds[i])
-  print sent
   tags = tagger.tag([sent])
-  wh = wh_gapify.get_all_wh(preds[i], tags)
-  print 'wh questions found:', sum([len(l) for l in wh.values()])
-  print '--------------------------------------------------------'
-  for possibles_list in wh.values():
+
+  # make wh-questions
+  wh = wh_extract.get_all_wh(preds[i], tags)
+  for wh_word, possibles_list in wh.iteritems():
     for (gappy, wh_phrase) in possibles_list:
       try:
         q = ' '.join([wh_phrase, sent_transform.sent_to_bin_q(gappy)])
-        print i, q
-      except AssertionError:
-        print i, 'assert failed'
+        wh_questions[wh_word].append(q)
       except:
-        print i, 'other error'
-  print '--------------------------------------------------------'
+        pass
+
+  # make binary question
   try:
     q = sent_transform.sent_to_bin_q(preds[i])
-    print i, q
-  except AssertionError:
-    print i, 'assert failed'
+    bin_questions.append(q)
   except:
-    print i, 'other error'
-  print '--------------------------------------------------------'
+    pass
+
+  # make confounded binary question
+  try:
+    sent_copy = copy.deepcopy(sent)
+    (confounded, success) = confound.try_confound(sent_copy)
+    if success:
+      q = sent_transform.sent_to_bin_q(confounded)
+      confounded_questions.append(q)
+  except:
+    pass
+
+# rank questions TODO
+print wh_questions
+print bin_questions
+print confounded_questions
