@@ -112,14 +112,28 @@ tagger = stanford_ner.create_tagger(user)
 with open(questions_filename) as questions_file:
   questions = questions_file.read().splitlines()
 
-# parse questions # TODO: check and limit length
-question_trees = parser.raw_parse_sents(questions)
+# check lengths, and don't parse super long (< 60 words) questions lest we
+# crash the Stanford parser
+no_parse = [i for i in xrange(len(questions)) if questions[i].count(' ') > 60]
+parsable_questions = []
+for i in xrange(len(questions)):
+  if i in no_parse:
+    parsable_questions.append('Is this it?')
+  else:
+    parsable_questions.append(questions[i])
+  
+# parse questions
+question_trees = parser.raw_parse_sents(parsable_questions)
 
 # find answers!
 for i in xrange(len(questions)):
 
   # determine question type
   (question_type, bin_form) = sent_transform.q_type(question_trees[i][0])
+
+  # check if question was parsable
+  if i in no_parse:
+    question_type = None
 
   # can't determine q type - best we can do is print the closest sentence
   if question_type is None:
