@@ -50,33 +50,36 @@ bin_questions = []
 confounded_questions = []
 # make questions from predicates
 for i in xrange(len(preds)):
-  sent = sent_transform.tree_to_string(preds[i])
-  tags = tagger.tag([sent])
-
-  # make wh-questions
-  wh = wh_extract.get_all_wh(preds[i], tags)
-  for wh_word, possibles_list in wh.iteritems():
-    for (gappy, wh_phrase) in possibles_list:
-      try:
-        q = ' '.join([wh_phrase, sent_transform.sent_to_bin_q(gappy)])
-        wh_questions[wh_word].append(q)
-      except:
-        pass
-
-  # make binary question
   try:
-    q = sent_transform.sent_to_bin_q(preds[i])
-    bin_questions.append(q)
-  except:
-    pass
+    sent = sent_transform.tree_to_string(preds[i])
+    tags = tagger.tag([sent])
 
-  # make confounded binary question
-  try:
-    sent_copy = copy.deepcopy(sent)
-    (confounded, success) = confound.try_confound(sent_copy)
-    if success:
-      q = sent_transform.sent_to_bin_q(confounded)
-      confounded_questions.append(q)
+    # make wh-questions
+    wh = wh_extract.get_all_wh(preds[i], tags)
+    for wh_word, possibles_list in wh.iteritems():
+      for (gappy, wh_phrase) in possibles_list:
+        try:
+          q = ' '.join([wh_phrase, sent_transform.sent_to_bin_q(gappy)])
+          wh_questions[wh_word].append(q)
+        except:
+          pass
+
+    # make binary question
+    try:
+      q = sent_transform.sent_to_bin_q(preds[i])
+      bin_questions.append(q)
+    except:
+      pass
+
+    # make confounded binary question
+    try:
+      sent_copy = copy.deepcopy(sent)
+      (confounded, success) = confound.try_confound(sent_copy)
+      if success:
+        q = sent_transform.sent_to_bin_q(confounded)
+        confounded_questions.append(q)
+    except:
+      pass
   except:
     pass
 
