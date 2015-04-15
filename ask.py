@@ -26,6 +26,9 @@ user = sys.argv[3]
 sentences = parse_article.parse_html(article_filename)
 # trim super-long sentences (60 or more words)
 sentences = [s for s in sentences if s.count(' ') < 60]
+# limit number of sentences
+if len(sentences) > 200:
+  sentences = sentences[:200]
 parser = stanford_parser.create_parser(user)
 parse_trees = parser.raw_parse_sents(sentences)
 
