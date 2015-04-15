@@ -20,7 +20,7 @@ def how_many(sentence_tree, answer_mode):
   gappies = []
 
   # number NP in subject position
-  head_noun = is_number_np(np):
+  head_noun = is_number_np(np)
   if head_noun:
     gappy = copy.deepcopy(sentence_tree)
     gap_phrase = 'how many ' + head_noun # default ask mode
