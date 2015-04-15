@@ -85,7 +85,7 @@ def how(sentence_tree, answer_mode):
 ADVERB_STOP_LIST = ['almost', 'also', 'further', 'generally', 'greatly',
     'however', 'just', 'later', 'longer', 'often', 'only', 'typically']
 def is_meaningful_adverb(tree_node):
-  return (tree_node.label() == ADVP and
+  return (tree_node.label() == ADVP and tree_node[0].label() == ADVERB and
       tree_node[0][0].lower() not in ADVERB_STOP_LIST)
 
 def why(sentence_tree, answer_mode):
