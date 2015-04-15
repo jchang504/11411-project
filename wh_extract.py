@@ -20,9 +20,10 @@ def how_many(sentence_tree, answer_mode):
   gappies = []
 
   # number NP in subject position
-  if is_number_np(np):
+  head_noun = is_number_np(np):
+  if head_noun:
     gappy = copy.deepcopy(sentence_tree)
-    gap_phrase = 'how many' # default ask mode
+    gap_phrase = 'how many ' + head_noun # default ask mode
     if answer_mode:
       gap_phrase = copy.deepcopy(gappy[0])
     del gappy[0]
@@ -33,23 +34,26 @@ def how_many(sentence_tree, answer_mode):
   if is_tensed_verb(verb_head.label()):
     if len(vp) >= 2:
       obj = vp[1]
-      if obj.label() == NP and is_number_np(obj):
-        gappy = copy.deepcopy(sentence_tree)
-        gap_phrase = 'how many' # default ask mode
-        if answer_mode:
-          gap_phrase = copy.deepcopy(gappy[1,1])
-        del gappy[1,1]
-        gappies.append((gappy, gap_phrase))
+      if obj.label() == NP:
+        head_noun = is_number_np(obj)
+        if head_noun:
+          gappy = copy.deepcopy(sentence_tree)
+          gap_phrase = 'how many ' + head_noun # default ask mode
+          if answer_mode:
+            gap_phrase = copy.deepcopy(gappy[1,1])
+          del gappy[1,1]
+          gappies.append((gappy, gap_phrase))
 
   return gappies
 
-# returns True if this NP is a number NP (e.g. '10 white chickens')
+# returns the head noun if this NP is a number NP (e.g. '10 white chickens')
 def is_number_np(np):
   if np[0].label() == NUMBER:
     for i in xrange(1, len(np)-1):
       if not is_adjective(np[i].label()):
-        return False
-    return np[-1].label() == NOUN_PL
+        return None
+    if np[-1].label() == NOUN_PL:
+      return np[-1][0]
 
 def how(sentence_tree, answer_mode):
   vp = sentence_tree[1]
