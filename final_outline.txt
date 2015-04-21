@@ -1,0 +1,51 @@
+./ask
+
+- parse HTML [BeautifulSoup]
+- segment sentences w/ NLTK sent_tokenize
+- remove sentences w/ >= 60 spaces
+- trim to 200 max sentences
+- parse sentences into syntax trees [Stanford Parser]
+- find appositions w/ SENTENCE (and PERIOD) context -> transform to predicates,
+  parse, and add trees to list
+- extract all trees matching SIMPLE_PREDICATE (S -> NP VP .)
+- make questions
+ - binary: simple subj-aux inversion [pattern.en for lemma, conjugate]
+ - wh: extract matches for all wh-words (only from ROOT context and in
+   standard, hardcoded positions - to avoid the problem of invalid
+   wh-movement), invert gappy sentence just as simple binary, and add question
+   word/phrase to beginning
+   - For who/whom, where, when, what: need to have NE tags to identify.
+     [Stanford NER]
+   - Explain some/all extraction patterns briefly?
+ - confounded binary: try to substitute synonyms, sisters, antonyms for head
+   noun of subject NP, then invert as usual
+- rank questions
+  - prefer medium length (5-30 spaces) questions > long > short
+  - hardcoded order of wh-words: how many, which, whose, why, who/whom, when,
+    where, how, what
+  - alternate wh, confounded, binary until we have enough questions
+- (aesthetics)
+
+./answer
+
+- parse HTML [BeautifulSoup]
+- segment sentences w/ NLTK sent_tokenize
+- remove sentences w/ >= 60 spaces
+- calculate LISF
+- read questions, mark ones >= 60 spaces (can't parse!)
+- determine question type: look at root node label. Return wh-word and/or
+  binary question part
+- answer question:
+  - if can't identify question type or too long to parse, find and print
+    closest sentence
+  - else: transform bin q to predicate sentence, find closest sentence in
+    article
+    - use tf-idf (tiebroken with overlap: more later)
+    - binary q: transform q to predicate sentence (inversion), parse predicate
+      into tree, check if all nouns, verbs, adjectives, adverbs have synonyms
+      in closest sentence; iff so, say yes
+    - wh q: parse article sentence into tree, find constituents that match
+      question type (similar to wh-question pattern extraction but no
+      position restrictions), compare gappy forms with transformed question
+      (tf-idf tiebroken with overlap - helpful for identifying correct gap
+      location), return best; if no matches found, just return whole sentence
