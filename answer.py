@@ -112,7 +112,7 @@ tagger = stanford_ner.create_tagger(user)
 with open(questions_filename) as questions_file:
   questions = questions_file.read().splitlines()
 
-# check lengths, and don't parse super long (< 60 words) questions lest we
+# check lengths, and don't parse super long (> 60 words) questions lest we
 # crash the Stanford parser
 no_parse = [i for i in xrange(len(questions)) if questions[i].count(' ') > 60]
 parsable_questions = []
